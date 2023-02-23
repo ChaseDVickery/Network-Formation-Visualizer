@@ -23,7 +23,8 @@ public class AgentGraph : MonoBehaviour
     public bool selecting = false;
     public List<IInteractable> selected;
     private bool dragging = false;
-    private Vector3 startDragPos, startDragMousePos;
+    private Vector3 startDragMousePosPrimary;
+    private Vector3 startDragMousePosSecondary;
     private DragType dragType;
 
     private bool ctrlDown;
@@ -31,6 +32,7 @@ public class AgentGraph : MonoBehaviour
     void Awake() {
         selectorPrimary = selectionBoxPrimary.GetComponent<Selector>();
         selectorSecondary = selectionBoxSecondary.GetComponent<Selector>();
+        selectorSecondary.isAlt = true;
     }
 
     // Start is called before the first frame update
@@ -75,65 +77,75 @@ public class AgentGraph : MonoBehaviour
             } 
             else {
                 SelectObject(null);
-                // UnfocusCurrent();
-                // if (!ctrlDown) {
-                //     // Selection box
-                //     selectorPrimary.ClearSelection();
-                // }
-                // selectorPrimary.Activate();
             }
-            // Get focus object info and set dragging
-            // if (focus != null) {
-            //     startDragPos = focus.transform.position;
-            // }
             dragType = DragType.LEFT;
-            startDragMousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            startDragMousePosPrimary = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         }
-        else if (Input.GetMouseButtonDown(1)) {
-            dragType = DragType.RIGHT;
-        }
-
-        if (Input.GetMouseButtonUp(0)) {
+        else if (Input.GetMouseButtonUp(0)) {
             dragType = DragType.NONE;
             selectorPrimary.GetSnapshot();
             selectorPrimary.Deactivate();
             selectorPrimary.transform.position = new Vector3(-100, -100, 0);
         }
 
+        if (Input.GetMouseButtonDown(1)) {
+            RaycastHit2D rayHit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            rayHit = Physics2D.GetRayIntersection(ray);
+            if ( rayHit.collider != null ) {
+                AltSelectObject(rayHit.transform.gameObject);
+            } 
+            else {
+                AltSelectObject(null);
+            }
+            dragType = DragType.RIGHT;
+            startDragMousePosSecondary = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        }
+        else if (Input.GetMouseButtonUp(1)) {
+            dragType = DragType.NONE;
+            selectorSecondary.GetSnapshot();
+            selectorSecondary.Deactivate();
+            selectorSecondary.transform.position = new Vector3(-100, -100, 0);
+        }
+
         if (dragType == DragType.LEFT) {
             Vector3 mousePos = Input.mousePosition;
             mousePos = Camera.main.ScreenToWorldPoint(mousePos);
-            // Move focus
-            // if (focus != null) {
-            //     focus.transform.position = startDragPos + (mousePos - startDragMousePos);
             if (selecting) {
                 for (int i = 0; i < selectorPrimary.selected.Count; i++) {
-                    selectorPrimary.selected[i].transform.position = selectorPrimary.positionSnapshot[i] + (mousePos - startDragMousePos);
+                    selectorPrimary.selected[i].transform.position = selectorPrimary.positionSnapshot[i] + (mousePos - startDragMousePosPrimary);
                 }
                 RefreshView();
             }
             // Selection box
             else {
-                Vector3 diff = (mousePos - startDragMousePos);
-                Vector3 boxPos = startDragMousePos + (diff/2);
+                Vector3 diff = (mousePos - startDragMousePosPrimary);
+                Vector3 boxPos = startDragMousePosPrimary + (diff/2);
                 boxPos.z = 0;
                 selectionBoxPrimary.transform.position = boxPos;
                 selectionBoxPrimary.transform.localScale = new Vector3(diff.x, diff.y, 1);
+            }
+        } else if (dragType == DragType.RIGHT) {
+            Vector3 mousePos = Input.mousePosition;
+            mousePos = Camera.main.ScreenToWorldPoint(mousePos);
+            if (selecting) {
+                
+            }
+            // Selection box
+            else {
+                Vector3 diff = (mousePos - startDragMousePosSecondary);
+                Vector3 boxPos = startDragMousePosSecondary + (diff/2);
+                boxPos.z = 0;
+                selectorSecondary.transform.position = boxPos;
+                selectorSecondary.transform.localScale = new Vector3(diff.x, diff.y, 1);
             }
         }
     }
 
     private void ClearSelections() {
-        // UnfocusCurrent();
         selectorPrimary.ClearSelection();
     }
     private void SelectObject(GameObject o) {
-        // // UnfocusCurrent();
-        // Agent agent = o.GetComponent<Agent>();
-        // if (agent != null) {
-        //     agent.Select();
-        //     // focus = agent.gameObject;
-        // }
         if (o != null) {
             if (selectorPrimary.selected.Contains(o)) {
                 if (ctrlDown) { selectorPrimary.RemoveFromSelection(o); }
@@ -157,20 +169,30 @@ public class AgentGraph : MonoBehaviour
             selecting = false;
         }
     }
-    // private void UnfocusCurrent() {
-    //     if (focus != null) {
-    //         Agent agent = focus.GetComponent<Agent>();
-    //         if (agent != null) {
-    //             agent.Deselect();
-    //         }
-
-    //         if (ctrlDown) {
-    //             selectorPrimary.AddToSelection(focus);
-    //             selectorPrimary.GetSnapshot();
-    //         }
-    //         focus = null;
-    //     }
-    // }
+    private void AltSelectObject(GameObject o) {
+        if (o != null) {
+            if (selectorSecondary.selected.Contains(o)) {
+                if (ctrlDown) { selectorSecondary.RemoveFromSelection(o); }
+            }
+            // If this object was NOT already in selection
+            else {
+                if (!ctrlDown) { ClearSelections(); }
+                selectorSecondary.AddToSelection(o);
+                focus = o;
+            }
+            selectorSecondary.GetSnapshot();
+            selecting = true;
+        }
+        // Clicked nothing (that we care about)
+        else {
+            if (!ctrlDown) {
+                // Selection box
+                selectorSecondary.ClearSelection();
+            }
+            selectorSecondary.Activate();
+            selecting = false;
+        }
+    }
 
     public void RefreshView() {
         foreach (Edge edge in edges) {

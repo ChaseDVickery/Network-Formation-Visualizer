@@ -8,6 +8,7 @@ public class Selector : MonoBehaviour
 
     public List<GameObject> selected;
     public List<Vector3> positionSnapshot;
+    public bool isAlt;
 
     public bool active = false;
 
@@ -36,7 +37,8 @@ public class Selector : MonoBehaviour
         selected.Add(obj);
         Agent a = obj.GetComponent<Agent>();
         if (a != null) {
-            a.Select();
+            if (isAlt) { a.AltSelect(); }
+            else { a.Select(); }
         }
         Debug.Log("Adding object to selection " + obj);
     }
@@ -45,7 +47,8 @@ public class Selector : MonoBehaviour
         selected.Remove(obj);
         Agent a = obj.GetComponent<Agent>();
         if (a != null) {
-            a.Deselect();
+            if (isAlt) { a.AltDeselect(); }
+            else { a.Deselect(); }
         }
         Debug.Log("Removing object from selection " + obj);
     }

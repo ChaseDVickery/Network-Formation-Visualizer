@@ -48,4 +48,10 @@ public class Agent : MonoBehaviour, IInteractable
     public void Deselect() {
         spriteRenderer.material.SetFloat("_Selected", 0f);
     }
+    public void AltSelect() {
+        spriteRenderer.material.SetFloat("_AltSelected", 1f);
+    }
+    public void AltDeselect() {
+        spriteRenderer.material.SetFloat("_AltSelected", 0f);
+    }
 }
