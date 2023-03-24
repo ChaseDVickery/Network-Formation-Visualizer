@@ -2,34 +2,43 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using System.Reflection;
+
 using Interactable;
 
+[RequireComponent(typeof(AgentDisplay))]
 public class Agent : MonoBehaviour, IInteractable
 {
     public string agentName;
+    private AgentDisplay agentDisplay;
 
     private bool isHovered = false;
 
     SpriteRenderer spriteRenderer;
+
+    public float allocation;
+    public List<Edge> edges = new List<Edge>();
 
     public override string ToString() {
         return agentName;
     }
 
     void Awake() {
+        agentDisplay = GetComponent<AgentDisplay>();
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    public void AddEdge(Edge e) {
+        edges.Add(e);
+    }
+    public void RemoveEdge(Edge e) {
+        edges.Remove(e);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
+    public void UpdateInfo(string key, System.Object value) {
+        FieldInfo updateField = typeof(Agent).GetField(key);
+        updateField.SetValue(this, value);
+        agentDisplay.UpdateDisplay();
     }
 
     void OnMouseEnter() { Hover(); }

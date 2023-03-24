@@ -17,10 +17,30 @@ public class Edge : MonoBehaviour
 
     public GameObject n1 {get; private set;}
     public GameObject n2 {get; private set;}
+    public Agent a1 {get; private set;}
+    public Agent a2 {get; private set;}
+
+    public PolygonCollider2D myCollider;
+    private float colliderWidth;
+
+    private Color origColor;
+    public Color selectionColor;
+    public Color altSelectionColor;
+
+    public float weight = 1;
+    public bool distWeightScale = false;
+    private float _cost;
+    public float cost {
+        get => GetCost();
+        set => _cost = value;
+    }
 
     void Awake() {
         poss = new Vector3[2];
         lren = GetComponent<LineRenderer>();
+        myCollider = GetComponent<PolygonCollider2D>();
+        origColor = lren.startColor;
+        colliderWidth = lren.widthMultiplier;
     }
 
     public void Connect(Transform t1, Transform t2) {
@@ -28,6 +48,8 @@ public class Edge : MonoBehaviour
         c2 = t2;
         n1 = t1.gameObject;
         n2 = t2.gameObject;
+        a1 = n1.GetComponent<Agent>();
+        a2 = n2.GetComponent<Agent>();
         Refresh();
     }
     public void Refresh() {
@@ -37,7 +59,43 @@ public class Edge : MonoBehaviour
         lren.SetPositions(poss);
 
         distText.transform.position = Camera.main.WorldToScreenPoint(midpt);
-        string distStr = (poss[0] - poss[1]).magnitude.ToString("n2");
-        distText.text = distStr;
+        distText.text = GetCost().ToString("n2");
+
+        Vector2[] pts = new Vector2[4];
+        Vector2 diff = new Vector2((poss[1] - poss[0]).x, (poss[1] - poss[0]).y);
+        Vector2 offsetDir = Vector2.Perpendicular(diff.normalized);
+        pts[0] = (Vector2)poss[0] + (colliderWidth/2)*offsetDir;
+        pts[1] = (Vector2)poss[1] + (colliderWidth/2)*offsetDir;
+        offsetDir = Vector2.Perpendicular((-diff).normalized);
+        pts[3] = (Vector2)poss[0] + (colliderWidth/2)*offsetDir;
+        pts[2] = (Vector2)poss[1] + (colliderWidth/2)*offsetDir;
+        myCollider.SetPath(0, pts);
+    }
+
+    public float GetCost() {
+        float cost = 0f;
+        if (distWeightScale) {
+            float dist = (poss[0] - poss[1]).magnitude;
+            return weight * dist;
+        } else {
+            return weight;
+        }
+    }
+
+    public void Select() {
+        lren.startColor = selectionColor;
+        lren.endColor = selectionColor;
+    }
+    public void Deselect() {
+        lren.startColor = origColor;
+        lren.endColor = origColor;
+    }
+    public void AltSelect() {
+        lren.startColor = altSelectionColor;
+        lren.endColor = altSelectionColor;
+    }
+    public void AltDeselect() {
+        lren.startColor = origColor;
+        lren.endColor = origColor;
     }
 }

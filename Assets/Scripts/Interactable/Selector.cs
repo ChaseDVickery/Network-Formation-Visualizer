@@ -6,6 +6,7 @@ using UnityEngine;
 public class Selector : MonoBehaviour
 {
 
+    public List<GameObject> selectCache;
     public List<GameObject> selected;
     public List<Vector3> positionSnapshot;
     public bool isAlt;
@@ -13,32 +14,46 @@ public class Selector : MonoBehaviour
     public bool active = false;
 
     void Awake() {
-        
+        selectCache = new List<GameObject>();
     }
 
     public void Activate() {
         active = true;
+        selectCache.Clear();
     }
     public void Deactivate() {
         active = false;
+        selectCache.Clear();
     }
 
     public void ClearSelection() {
         foreach (GameObject sel in selected) {
             Agent a = sel.GetComponent<Agent>();
             if (a != null) {
-                a.Deselect();
+                if (isAlt) { a.AltDeselect(); }
+                else { a.Deselect(); }
+            }
+            Edge e = sel.GetComponent<Edge>();
+            if (e != null) {
+                if (isAlt) { e.AltDeselect(); }
+                else { e.Deselect(); }
             }
         }
         selected.Clear();
     }
 
     public void AddToSelection(GameObject obj) {
+        if (obj == gameObject) { return; }
         selected.Add(obj);
         Agent a = obj.GetComponent<Agent>();
         if (a != null) {
             if (isAlt) { a.AltSelect(); }
             else { a.Select(); }
+        }
+        Edge e = obj.GetComponent<Edge>();
+        if (e != null) {
+            if (isAlt) { e.AltSelect(); }
+            else { e.Select(); }
         }
         Debug.Log("Adding object to selection " + obj);
     }
@@ -49,6 +64,11 @@ public class Selector : MonoBehaviour
         if (a != null) {
             if (isAlt) { a.AltDeselect(); }
             else { a.Deselect(); }
+        }
+        Edge e = obj.GetComponent<Edge>();
+        if (e != null) {
+            if (isAlt) { e.AltDeselect(); }
+            else { e.Deselect(); }
         }
         Debug.Log("Removing object from selection " + obj);
     }
@@ -62,13 +82,15 @@ public class Selector : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D col) {
         if (active) {
-            AddToSelection(col.gameObject);
+            if (selected.Contains(col.gameObject)) { selectCache.Add(col.gameObject); RemoveFromSelection(col.gameObject); }
+            else { AddToSelection(col.gameObject); }
         }
     }
 
     void OnTriggerExit2D(Collider2D col) {
         if (active && col != null) {
-            RemoveFromSelection(col.gameObject);
+            if (selectCache.Contains(col.gameObject)) { selectCache.Remove(col.gameObject); AddToSelection(col.gameObject); }
+            else { RemoveFromSelection(col.gameObject); }
         }
     }
 }
