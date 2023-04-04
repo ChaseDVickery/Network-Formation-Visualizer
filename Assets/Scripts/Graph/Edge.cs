@@ -82,6 +82,16 @@ public class Edge : MonoBehaviour
         }
     }
 
+    public static float PredictCost(Vector3 pos1, Vector3 pos2, float weight, bool distWeightScale) {
+        float cost = 0f;
+        if (distWeightScale) {
+            float dist = (pos1 - pos2).magnitude;
+            return weight * dist;
+        } else {
+            return weight;
+        }
+    }
+
     public void Select() {
         lren.startColor = selectionColor;
         lren.endColor = selectionColor;

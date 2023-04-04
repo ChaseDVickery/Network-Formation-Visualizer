@@ -13,6 +13,30 @@ public class Graph<T> where T : class
         BuildEmptyGraph();
     }
 
+    public int GetIdx(T toFind) {
+        return nodes.FindIndex(x => x==toFind);
+    }
+
+    public T GetT(int idx) {
+        if (idx < 0 || idx >= nodes.Count) { return null; }
+        else { return nodes[idx]; }
+    }
+
+    public void CopyFrom(Graph<T> other) {
+        // Copy nodes
+        nodes = new List<T>();
+        foreach (T node in other.nodes) {
+            nodes.Add(node);
+        }
+        // Copy weights
+        adjMatrix = new float[nodes.Count, nodes.Count];
+        for (int i = 0; i < other.adjMatrix.GetLength(0); i++) {
+            for (int j = 0; j < other.adjMatrix.GetLength(1); j++) {
+                adjMatrix[i,j] = other.adjMatrix[i,j];
+            }
+        }
+    }
+
     public void BuildEmptyGraph() {
         adjMatrix = new float[nodes.Count, nodes.Count];
         for (int i = 0; i < nodes.Count; i++) {
@@ -78,14 +102,14 @@ public class Graph<T> where T : class
         }
     }
 
-    public void AddEdge(int idx1, int idx2, int weight=1, bool undirected=true) {
+    public void AddEdge(int idx1, int idx2, float weight=1, bool undirected=true) {
         if (idx1 < adjMatrix.GetLength(0) && idx2 < adjMatrix.GetLength(0)) {
             adjMatrix[idx1, idx2] = weight;
             if (undirected) { adjMatrix[idx2, idx1] = weight; }
         }
     }
 
-    public void AddEdge(T n1, T n2, int weight=1, bool undirected=true) {
+    public void AddEdge(T n1, T n2, float weight=1, bool undirected=true) {
         int idx1 = nodes.FindIndex(x => x==n1);
         int idx2 = nodes.FindIndex(x => x==n2);
         if (idx1 >= 0 && idx2 >= 0) {

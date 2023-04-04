@@ -8,6 +8,9 @@ using Interactable;
 
 public class AgentGraph : MonoBehaviour
 {
+
+    public bool undirected = true;
+
     public NetworkRules rules;
 
     public int numAgents;
@@ -22,6 +25,7 @@ public class AgentGraph : MonoBehaviour
     public List<Agent> agents;
     public List<Edge> edges;
     public Graph<Agent> graph;
+    public Graph<Agent> oracleGraph;
 
     public float value { get; private set; }
     public List<float> allocations { get; private set; }
@@ -66,6 +70,8 @@ public class AgentGraph : MonoBehaviour
         //     AddEdge();
         // }
         Debug.Log(graph);
+
+        oracleGraph = new Graph<Agent>(agents);
     }
 
     // Update is called once per frame
@@ -76,22 +82,27 @@ public class AgentGraph : MonoBehaviour
         //     CalculateAllocation();
         // }
 
+        if (Input.GetKeyDown("g")) {
+            // GetAllAdjacentGraphs();
+            IsPairwiseStable();
+        }
+
         if (Input.GetKeyDown("r")) {
             // RemoveSelectedAgents();
             RemoveSelected();
-            CalculateAllocation();
+            UpdateAllocations();
         }
         if (Input.GetKeyDown("a")) {
             ConnectAllSelected();
-            CalculateAllocation();
+            UpdateAllocations();
         }
         if (Input.GetKeyDown("s")) {
             ConnectBipartite();
-            CalculateAllocation();
+            UpdateAllocations();
         }
         if (Input.GetKeyDown("space")) {
             SmartConnect();
-            CalculateAllocation();
+            UpdateAllocations();
         }
         if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl)) { ctrlDown = true; }
         if (Input.GetKeyUp(KeyCode.LeftControl) || Input.GetKeyUp(KeyCode.RightControl)) { ctrlDown = false; }
@@ -175,10 +186,22 @@ public class AgentGraph : MonoBehaviour
         }
     }
 
-    public void CalculateAllocation() {
-        // Calculate the Value of the graph as well as the per-agent allocations
-        value = rules.GetNetworkValue(graph);
-        allocations = rules.GetAllocation(graph, value);
+    public List<float> CalculateAllocation(Graph<Agent> toCalculate = null) {
+        if (toCalculate == null) {
+            // Calculate the Value of the graph as well as the per-agent allocations
+            value = rules.GetNetworkValue(graph);
+            allocations = rules.GetAllocation(graph, value);
+            return allocations;
+        } else {
+            // Calculate the Value of the graph as well as the per-agent allocations
+            value = rules.GetNetworkValue(toCalculate);
+            allocations = rules.GetAllocation(toCalculate, value);
+            return allocations;
+        }
+    }
+
+    public void UpdateAllocations(Graph<Agent> toCalculate = null) {
+        List<float> allocations = CalculateAllocation(toCalculate);
         for (int i = 0; i < agents.Count; i++) {
             agents[i].UpdateInfo("allocation", allocations[i]);
         }
@@ -242,7 +265,7 @@ public class AgentGraph : MonoBehaviour
             graph.UpdateWeight(edge.a1, edge.a2, edge.cost);
             graph.UpdateWeight(edge.a2, edge.a1, edge.cost);
         }
-        CalculateAllocation();
+        UpdateAllocations();
         onRefreshView.Invoke();
     }
 
@@ -354,5 +377,100 @@ public class AgentGraph : MonoBehaviour
             edge.distWeightScale = rules.edgeInfo.scaleWithDistance;
         }
         RefreshView();
+    }
+
+    public bool IsPairwiseStable() {
+        bool stable = true;
+        List<AdjGraph<Agent>> posAdjGraphs = GetPositiveAdjacentGraphs();
+        List<AdjGraph<Agent>> negAdjGraphs = GetNegativeAdjacentGraphs();
+        List<float> currAllocs = CalculateAllocation();
+        // Check that removing an edge does not decrease any agent's allocation
+        foreach (AdjGraph<Agent> negadj in negAdjGraphs) {
+            List<float> newAllocs = CalculateAllocation(negadj);
+            // Only pairwise stable if u_i(g) >= u_i(g - ij) for all i and ij
+            // Otherwise, not PS
+            if (currAllocs[negadj.i] < newAllocs[negadj.i]) { return false; }
+        }
+
+        // Check that. when adding an edge, if my utility (u_i) goes up, then my partner's
+        // utility (u_j) goes down (I cannot gain without the person I'm connecting to losing)
+        foreach (AdjGraph<Agent> posadj in posAdjGraphs) {
+            List<float> newAllocs = CalculateAllocation(posadj);
+            // If I gain, then you must lose, or we are not PS
+            if (newAllocs[posadj.i] > currAllocs[posadj.i]) {
+                if (newAllocs[posadj.j] >= currAllocs[posadj.j]) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public List<AdjGraph<Agent>> GetPositiveAdjacentGraphs() {
+        List<AdjGraph<Agent>> adjGraphs = new List<AdjGraph<Agent>>();
+        for (int i = 0; i < agents.Count; i++) {
+            for (int j = undirected ? i : 0; j < agents.Count; j++) {
+                // Only calculate adj graph if two agents are not connected (we get new version in which they are connected)
+                if (i != j && !graph.AreConnected(agents[i], agents[j])) {
+                    adjGraphs.Add(GetAdjacentGraph(agents[i], agents[j]));
+                }
+            }
+        }
+        return adjGraphs;
+    }
+
+    public List<AdjGraph<Agent>> GetNegativeAdjacentGraphs() {
+        List<AdjGraph<Agent>> adjGraphs = new List<AdjGraph<Agent>>();
+        for (int i = 0; i < agents.Count; i++) {
+            for (int j = undirected ? i : 0; j < agents.Count; j++) {
+                // Only calculate adj graph if two agents are connected (we get new version in which they are NOT connected)
+                if (i != j && graph.AreConnected(agents[i], agents[j])) {
+                    adjGraphs.Add(GetAdjacentGraph(agents[i], agents[j]));
+                }
+            }
+        }
+        return adjGraphs;
+    }
+
+    public List<AdjGraph<Agent>> GetAllAdjacentGraphs() {
+        List<AdjGraph<Agent>> adjGraphs = new List<AdjGraph<Agent>>();
+        for (int i = 0; i < agents.Count; i++) {
+            for (int j = undirected ? i : 0; j < agents.Count; j++) {
+                if (i != j) {
+                    adjGraphs.Add(GetAdjacentGraph(agents[i], agents[j]));
+                }
+            }
+        }
+        return adjGraphs;
+    }
+
+    // Returns a Graph<Agent> with the edge toggled
+    // If edge was 0, then return graph copy with edge with weight calculated
+    // If edge was !0, then return graph copy with edge with weight 0
+    public AdjGraph<Agent> GetAdjacentGraph(Agent a1, Agent a2) {
+        // Reset oracle graph to orig graph if oracle not provided
+        AdjGraph<Agent> oracle = new AdjGraph<Agent>(agents);
+        oracle.CopyFrom(graph);
+        // 
+        int idx1 = oracle.GetIdx(a1);
+        int idx2 = oracle.GetIdx(a2);
+        oracle.SetAdjacentEdge(idx1, idx2);
+        if (oracle.AreConnected(idx1, idx2)) {
+            oracle.RemoveEdge(idx1, idx2, undirected);
+        } else {
+            oracle.AddEdge(
+                idx1,
+                idx2,
+                Edge.PredictCost(
+                    a1.transform.position,
+                    a2.transform.position,
+                    rules.edgeInfo.weight,
+                    rules.edgeInfo.scaleWithDistance
+                ),
+                undirected
+            );
+        }
+        return oracle;
     }
 }
