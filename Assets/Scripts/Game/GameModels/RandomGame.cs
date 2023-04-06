@@ -10,20 +10,17 @@ public class RandomGame : NetworkFormationGame
     public float proposalChance = 0.5f;
     public float acceptChance = 0.5f;
 
-    [SerializeField]
-    private int currPlayerIdx;
-
     // Resets the parameters and history of the game
     // Should also be called when user changes the graph.
     public override void Reset() {
         base.Reset();
-        currPlayerIdx = 0;
     }
 
     // Represents an atomic "step" of the formation game
     // Ideally the smallest unit of decision that occurs during the game
     // Creates list of NetworkEvents representing changes to the network
     protected override void PlanStep() {
+        base.PlanStep();
         if (simultaneous) {
 
         } else {
@@ -33,7 +30,7 @@ public class RandomGame : NetworkFormationGame
             // Accept or deny any proposed links involving you as the end
             List<Agent> accepted = new List<Agent>();
             foreach (ProposedEdge pedge in GetIncomingProposals(curr)) {
-                if (Random.value < proposalChance) {
+                if (Random.value <= acceptChance) {
                     ne = PlanAcceptEdge(pedge);
                     // Track accepted edge to make sure you don't propose back on same planning step
                     if (ne.action == NetworkAction.ACCEPT_EDGE) { accepted.Add(pedge.start); }
@@ -47,13 +44,13 @@ public class RandomGame : NetworkFormationGame
                 Agent other = agentGraph.agents[i];
                 // Chance to propose to NOT yourself and not already connected and not accepted proposal
                 if (i != currPlayerIdx && !accepted.Contains(other) && !agentGraph.graph.AreConnected(curr, other)) {
-                    if (Random.value < proposalChance) {
+                    if (Random.value <= proposalChance) {
                         ne = PlanProposeEdge(curr, agentGraph.agents[i]);
                         Plan(ne);
                     }
                 }
             }
-            currPlayerIdx = (currPlayerIdx + 1) % agentGraph.agents.Count;
+            
         }
         // NetworkEvent ne = PlanConnect(agentGraph.agents[0], agentGraph.agents[1]);
         // ne.step = time;
