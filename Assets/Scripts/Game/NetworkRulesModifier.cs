@@ -18,7 +18,7 @@ public class NetworkRulesModifier : MonoBehaviour
         SyncToRules();
     }
 
-    private void SyncToRules() {
+    public void SyncToRules() {
         weightSlider.value = rules.edgeInfo.weight;
         weightDistToggle.isOn =rules.edgeInfo.scaleWithDistance;
     }

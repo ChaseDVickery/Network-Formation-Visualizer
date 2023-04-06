@@ -5,15 +5,21 @@ using UnityEngine.Events;
 
 public class NetworkRules : MonoBehaviour
 {
+    public delegate void GraphUpdateDelegate();
+    public GraphUpdateDelegate graphUpdateDelegate;
+
     public UnityEvent onChange;
     public EdgeInfo edgeInfo;
 
+    public ValueFlow direction;
+
     public void ApplyChanges() {
+        graphUpdateDelegate?.Invoke();
         onChange.Invoke();
     }
 
     // Maps the graph to a real number using the defined rules
-    public virtual float GetNetworkValue(Graph<Agent> network) {
+    public virtual float GetNetworkValue(Graph<Agent> network, List<float> allocations = null) {
         // List<List<int>> comps = network.GetConnectedComponents();
         // Debug.Log(System.String.Format("Network Value: {0}", comps.Count));
         int numConnections = network.NumConnections();
@@ -40,3 +46,8 @@ public struct EdgeInfo {
     public float weight;
     public bool scaleWithDistance;
 }
+[System.Serializable]
+public enum ValueFlow {
+    VALUE_TO_ALLOC,
+    ALLOC_TO_VALUE,
+};

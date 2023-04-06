@@ -23,7 +23,7 @@ public class Edge : MonoBehaviour
     public PolygonCollider2D myCollider;
     private float colliderWidth;
 
-    private Color origColor;
+    private Color origColorStart, origColorEnd;
     public Color selectionColor;
     public Color altSelectionColor;
 
@@ -39,7 +39,8 @@ public class Edge : MonoBehaviour
         poss = new Vector3[2];
         lren = GetComponent<LineRenderer>();
         myCollider = GetComponent<PolygonCollider2D>();
-        origColor = lren.startColor;
+        origColorStart = lren.startColor;
+        origColorEnd = lren.endColor;
         colliderWidth = lren.widthMultiplier;
     }
 
@@ -97,15 +98,15 @@ public class Edge : MonoBehaviour
         lren.endColor = selectionColor;
     }
     public void Deselect() {
-        lren.startColor = origColor;
-        lren.endColor = origColor;
+        lren.startColor = origColorStart;
+        lren.endColor = origColorEnd;
     }
     public void AltSelect() {
         lren.startColor = altSelectionColor;
         lren.endColor = altSelectionColor;
     }
     public void AltDeselect() {
-        lren.startColor = origColor;
-        lren.endColor = origColor;
+        lren.startColor = origColorStart;
+        lren.endColor = origColorEnd;
     }
 }

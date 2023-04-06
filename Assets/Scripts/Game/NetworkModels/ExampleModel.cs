@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class ConnectionsModel : NetworkRules
+public class ExampleModel : NetworkRules
 {
+    void Awake() {
+        direction = ValueFlow.VALUE_TO_ALLOC;
+    }
+
     // Maps the graph to a real number using the defined rules
-    public override float GetNetworkValue(Graph<Agent> network) {
+    public override float GetNetworkValue(Graph<Agent> network, List<float> allocations=null) {
         // List<List<int>> comps = network.GetConnectedComponents();
         // Debug.Log(System.String.Format("Network Value: {0}", comps.Count));
         int numConnections = network.NumConnections();

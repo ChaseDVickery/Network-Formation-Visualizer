@@ -13,6 +13,16 @@ public class Graph<T> where T : class
         BuildEmptyGraph();
     }
 
+    public int[,] AsGeodesic() {
+        int[,] hopMatrix = new int[nodes.Count, nodes.Count];
+        for (int i = 0; i < nodes.Count; i++) {
+            for (int j = 0; j < nodes.Count; j++) {
+                hopMatrix[i,j] = adjMatrix[i,j] > 0 ? 1 : 0;
+            }
+        }
+        return hopMatrix;
+    }
+
     public int GetIdx(T toFind) {
         return nodes.FindIndex(x => x==toFind);
     }
@@ -176,6 +186,26 @@ public class Graph<T> where T : class
         }
         return sum;
     }
+    public float OutgoingCost(int idx) {
+        float cost = 0;
+        if (idx < adjMatrix.GetLength(0)) {
+            for (int j = 0; j < adjMatrix.GetLength(1); j++) {
+                if (adjMatrix[idx,j] > 0) { cost += adjMatrix[idx,j]; }
+            }
+        }
+        return cost;
+    }
+    public float IncomingCost(int idx) {
+        float cost = 0;
+        if (idx < adjMatrix.GetLength(1)) {
+            for (int i = 0; i < adjMatrix.GetLength(0); i++) {
+                if (adjMatrix[i,idx] > 0) { cost += adjMatrix[i,idx]; }
+            }
+        }
+        return cost;
+    }
+
+
     public int NumOutgoing(int idx) {
         int num = 0;
         if (idx < adjMatrix.GetLength(0)) {

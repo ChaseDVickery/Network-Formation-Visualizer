@@ -47,15 +47,7 @@ public class AgentGraph : MonoBehaviour
         selectorSecondary = selectionBoxSecondary.GetComponent<Selector>();
         selectorSecondary.isAlt = true;
 
-        rules.onChange.AddListener(ApplyNetworkRules);
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        // if (agents.Count == 0) {
-        //     agents.Add(Instantiate(agentPrefab).GetComponent<Agent>());
-        // }
+        // rules.onChange.AddListener(ApplyNetworkRules);
         if (numAgents > 0) {
             agents.Clear();
             for (int i = 0; i < numAgents; i++) {
@@ -65,13 +57,42 @@ public class AgentGraph : MonoBehaviour
                 agents.Add(newAgentObj.GetComponent<Agent>());
             }
         }
-        graph = new Graph<Agent>(agents);
-        // for (int i = 0; i < 30; i++) {
-        //     AddEdge();
-        // }
+        List<Agent> tempList = new List<Agent>();
+        foreach (Agent agent in agents) {
+            tempList.Add(agent);
+        }
+        graph = new Graph<Agent>(tempList);
         Debug.Log(graph);
 
         oracleGraph = new Graph<Agent>(agents);
+    }
+
+    public void SetNetworkRules(NetworkRules newRules) {
+        rules.graphUpdateDelegate -= ApplyNetworkRules;
+        newRules.graphUpdateDelegate = ApplyNetworkRules;
+        rules = newRules;
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        // if (numAgents > 0) {
+        //     agents.Clear();
+        //     for (int i = 0; i < numAgents; i++) {
+        //         GameObject newAgentObj = Instantiate(agentPrefab);
+        //         // newAgentObj.transform.position = new Vector3(Random.Range(-8.0f, 8.0f), Random.Range(-5.0f, 5.0f), 0);
+        //         newAgentObj.transform.position = new Vector3(3*Mathf.Cos(2*Mathf.PI*i/(numAgents)), 3*Mathf.Sin(2*Mathf.PI*i/(numAgents)), 0);
+        //         agents.Add(newAgentObj.GetComponent<Agent>());
+        //     }
+        // }
+        // List<Agent> tempList = new List<Agent>();
+        // foreach (Agent agent in agents) {
+        //     tempList.Add(agent);
+        // }
+        // graph = new Graph<Agent>(tempList);
+        // Debug.Log(graph);
+
+        // oracleGraph = new Graph<Agent>(agents);
     }
 
     // Update is called once per frame
@@ -101,7 +122,7 @@ public class AgentGraph : MonoBehaviour
             UpdateAllocations();
         }
         if (Input.GetKeyDown("space")) {
-            SmartConnect();
+            SmartAction();
             UpdateAllocations();
         }
         if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl)) { ctrlDown = true; }
@@ -187,17 +208,20 @@ public class AgentGraph : MonoBehaviour
     }
 
     public List<float> CalculateAllocation(Graph<Agent> toCalculate = null) {
+        // Use my current graph if no other specified
         if (toCalculate == null) {
-            // Calculate the Value of the graph as well as the per-agent allocations
-            value = rules.GetNetworkValue(graph);
-            allocations = rules.GetAllocation(graph, value);
-            return allocations;
-        } else {
-            // Calculate the Value of the graph as well as the per-agent allocations
-            value = rules.GetNetworkValue(toCalculate);
+            toCalculate = graph;
+        } 
+        // Calculate the Value of the graph as well as the per-agent allocations
+        if (rules.direction == ValueFlow.VALUE_TO_ALLOC) {
+            value = rules.GetNetworkValue(toCalculate, null);
             allocations = rules.GetAllocation(toCalculate, value);
-            return allocations;
+        } else if (rules.direction == ValueFlow.ALLOC_TO_VALUE) {
+            allocations = rules.GetAllocation(toCalculate, 0);
+            value = rules.GetNetworkValue(toCalculate, allocations);
         }
+        
+        return allocations;
     }
 
     public void UpdateAllocations(Graph<Agent> toCalculate = null) {
@@ -269,12 +293,25 @@ public class AgentGraph : MonoBehaviour
         onRefreshView.Invoke();
     }
 
+    public void AddAgentAtMouse() {
+        GameObject agentObject = Instantiate(agentPrefab);
+        Agent newAgent = agentObject.GetComponent<Agent>();
+        if (newAgent != null) {
+            graph.AddNode(newAgent);
+            agents.Add(newAgent);
+        }
+        Vector3 mousePos = Input.mousePosition;
+        mousePos = Camera.main.ScreenToWorldPoint(mousePos);
+        mousePos = new Vector3(mousePos.x, mousePos.y, agentObject.transform.position.z);
+        agentObject.transform.position = mousePos;
+    }
+
     public void AddAgent() {
         GameObject agentObject = Instantiate(agentPrefab);
         Agent newAgent = agentObject.GetComponent<Agent>();
         if (newAgent != null) {
-            agents.Add(newAgent);
             graph.AddNode(newAgent);
+            agents.Add(newAgent);
         }
     }
 
@@ -348,12 +385,16 @@ public class AgentGraph : MonoBehaviour
         }
     }
 
-    public void SmartConnect() {
+    public void SmartAction() {
         if (selectorPrimary.selected.Count > 0 && selectorSecondary.selected.Count > 0) {
             ConnectBipartite();
         }
         else if (selectorPrimary.selected.Count > 1) {
             ConnectAllSelected();
+        }
+        else {
+            AddAgentAtMouse();
+            Debug.Log(graph);
         }
     }
 
