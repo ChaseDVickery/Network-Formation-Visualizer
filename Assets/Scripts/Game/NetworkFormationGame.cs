@@ -14,6 +14,7 @@ public class NetworkFormationGame : MonoBehaviour
     [SerializeField]
     protected List<NetworkEvent> history;
 
+    [Range(0.01f, 1f)]
     public float stepTime = 0.1f;
     private IEnumerator simCoroutine;
     private bool running = false;
@@ -60,18 +61,24 @@ public class NetworkFormationGame : MonoBehaviour
         yield return null;
         while(true) {
             // Skip if simulation is paused
-            if (!running) { yield return null;}
-            // Perform the step
-            float startTime = Time.realtimeSinceStartup;
-            Step();
-            float endTime = Time.realtimeSinceStartup;
-            float waitTime = Mathf.Max(0.01f, stepTime - (endTime-startTime));
-            yield return new WaitForSeconds(waitTime);
+            if (!running) {
+                yield return null;
+            } else {
+                // Perform the step
+                float startTime = Time.realtimeSinceStartup;
+                Step();
+                float endTime = Time.realtimeSinceStartup;
+                float waitTime = Mathf.Max(0.01f, stepTime - (endTime-startTime));
+                yield return new WaitForSeconds(waitTime);
+            }
         }
     }
 
     public void Run() {
         // if (simCoroutine)
+        running = true;
+        agentGraph.inputEnabled = false;
+        StartCoroutine(simCoroutine);
     }
 
     public void Resume() {
@@ -79,6 +86,12 @@ public class NetworkFormationGame : MonoBehaviour
         // simCoroutine
     }
 
+    public void Pause() {
+        running = false;
+    }
+
+    // Ends the game
+    // Do we take on the new form or reset the AgentGraph?
     public void Stop() {
         agentGraph.inputEnabled = true;
     }
@@ -139,7 +152,7 @@ public class NetworkFormationGame : MonoBehaviour
     // Attempts to undo every NetworkEvent from last timestep and
     // decrements time
     public void Undo() {
-        time -= 1;
+        time = Mathf.Max(0, time-1);
         // Find events from last time step
         List<NetworkEvent> found = history.FindAll(e => e.step == time);
         // Reverse list so that the last events that were committed are the first events to be reversed
