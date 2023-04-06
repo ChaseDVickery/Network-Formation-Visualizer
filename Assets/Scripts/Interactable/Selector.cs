@@ -55,7 +55,7 @@ public class Selector : MonoBehaviour
             if (isAlt) { e.AltSelect(); }
             else { e.Select(); }
         }
-        Debug.Log("Adding object to selection " + obj);
+        // Debug.Log("Adding object to selection " + obj);
     }
 
     public void RemoveFromSelection(GameObject obj) {
@@ -70,7 +70,7 @@ public class Selector : MonoBehaviour
             if (isAlt) { e.AltDeselect(); }
             else { e.Deselect(); }
         }
-        Debug.Log("Removing object from selection " + obj);
+        // Debug.Log("Removing object from selection " + obj);
     }
 
     public void GetSnapshot() {

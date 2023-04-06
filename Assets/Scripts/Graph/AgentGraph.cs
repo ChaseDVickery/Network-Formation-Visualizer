@@ -25,11 +25,11 @@ public class AgentGraph : MonoBehaviour
     public List<Agent> agents;
     public List<Edge> edges;
     public Graph<Agent> graph;
-    public Graph<Agent> oracleGraph;
 
     public float value { get; private set; }
     public List<float> allocations { get; private set; }
 
+    public bool inputEnabled = true;
     public GameObject focus;
     public bool selecting = false;
     public List<IInteractable> selected;
@@ -41,6 +41,9 @@ public class AgentGraph : MonoBehaviour
     private bool ctrlDown;
 
     public UnityEvent onRefreshView;
+
+    // private Dictionary<Agent, Dictionary<Agent, Edge>> edgeDict = new Dictionary<Agent, Dictionary<Edge>>();
+    private Edge[,] edgeMatrix;
 
     void Awake() {
         selectorPrimary = selectionBoxPrimary.GetComponent<Selector>();
@@ -64,8 +67,38 @@ public class AgentGraph : MonoBehaviour
         graph = new Graph<Agent>(tempList);
         Debug.Log(graph);
 
-        oracleGraph = new Graph<Agent>(agents);
+        edgeMatrix = new Edge[agents.Count, agents.Count];
+        for (int i = 0; i < agents.Count; i++) {
+            for (int j = 0; j < agents.Count; j++) {
+                edgeMatrix[i,j] = null;
+            }
+        }
     }
+
+    public void ResizeEdgeMatrix() {
+        // Copy existing edges to new matrix
+        Edge[,] tempAdj = new Edge[agents.Count, agents.Count];
+        // Makes sure we don't exceed bounds of temp or edgeMatrix whether expanding or contracting
+        int rows = Mathf.Min(tempAdj.GetLength(0), edgeMatrix.GetLength(0));
+        int cols = Mathf.Min(tempAdj.GetLength(1), edgeMatrix.GetLength(1));
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                tempAdj[i,j] = edgeMatrix[i,j];
+            }
+        }
+        // Fill in null for last row and column for new node with no connections
+        // ONLY NEEDED IF EXTRA AGENT THAN PREVIOUSLY
+        if (tempAdj.GetLength(0) == edgeMatrix.GetLength(0) + 1) {
+            for (int i = 0; i < edgeMatrix.GetLength(0); i++) { tempAdj[agents.Count-1, i] = null; }
+            for (int i = 0; i < edgeMatrix.GetLength(0); i++) { tempAdj[i, agents.Count-1] = null; }
+        }
+        // Transfer temp matrix;
+        edgeMatrix = tempAdj;
+    }
+
+    // public void SetGraph(Graph<Agent> newGraph) {
+    //     return;
+    // }
 
     public void SetNetworkRules(NetworkRules newRules) {
         rules.graphUpdateDelegate -= ApplyNetworkRules;
@@ -91,13 +124,13 @@ public class AgentGraph : MonoBehaviour
         // }
         // graph = new Graph<Agent>(tempList);
         // Debug.Log(graph);
-
-        // oracleGraph = new Graph<Agent>(agents);
     }
 
     // Update is called once per frame
     void Update()
     {
+
+        if (!inputEnabled) { return; }
 
         // if (Input.GetKeyDown("g")) {
         //     CalculateAllocation();
@@ -304,6 +337,9 @@ public class AgentGraph : MonoBehaviour
         mousePos = Camera.main.ScreenToWorldPoint(mousePos);
         mousePos = new Vector3(mousePos.x, mousePos.y, agentObject.transform.position.z);
         agentObject.transform.position = mousePos;
+
+        ResizeEdgeMatrix();
+        RefreshView();
     }
 
     public void AddAgent() {
@@ -313,6 +349,9 @@ public class AgentGraph : MonoBehaviour
             graph.AddNode(newAgent);
             agents.Add(newAgent);
         }
+
+        ResizeEdgeMatrix();
+        RefreshView();
     }
 
     public void RemoveSelected() {
@@ -320,16 +359,22 @@ public class AgentGraph : MonoBehaviour
         //     Agent agent = focus.GetComponent<Agent>();
         //     if (agent != null) { RemoveAgent(agent); }
         // }
+        List<Agent> ags = new List<Agent>();
+        List<Edge> egs = new List<Edge>();
         foreach (GameObject go in selectorPrimary.selected) {
             Agent agent = go.GetComponent<Agent>();
             if (agent != null) {
-                RemoveAgent(agent);
+                ags.Add(agent);
+                // RemoveAgent(agent);
             }
             Edge edge = go.GetComponent<Edge>();
             if (edge != null) {
-                RemoveEdge(edge);
+                egs.Add(edge);
+                // RemoveEdge(edge);
             }
         }
+        foreach (Edge e in egs) { RemoveEdge(e); }
+        foreach (Agent a in ags) { RemoveAgent(a); }
         ClearSelections();
     }
     public void RemoveAgent(Agent agent) {
@@ -347,6 +392,7 @@ public class AgentGraph : MonoBehaviour
         }
         // Destroy agent
         agents.Remove(agent);
+        ResizeEdgeMatrix();
         Destroy(agent.gameObject);
         ApplyNetworkRules();
     }
@@ -357,8 +403,12 @@ public class AgentGraph : MonoBehaviour
         a2.RemoveEdge(edge);
         graph.RemoveEdge(a1, a2);
         edges.Remove(edge);
+        edgeMatrix[agents.IndexOf(a1), agents.IndexOf(a2)] = null;
         Destroy(edge.gameObject);
         ApplyNetworkRules();
+    }
+    public Edge EdgeAt(Agent a1, Agent a2) {
+        return edgeMatrix[agents.IndexOf(a1), agents.IndexOf(a2)];
     }
 
     public void ConnectAllSelected() {
@@ -408,6 +458,7 @@ public class AgentGraph : MonoBehaviour
             edges.Add(edge);
             a1.AddEdge(edge);
             a2.AddEdge(edge);
+            edgeMatrix[agents.IndexOf(a1), agents.IndexOf(a2)] = edge;
         }
         ApplyNetworkRules();
     }
