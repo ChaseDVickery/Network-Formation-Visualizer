@@ -78,17 +78,18 @@ public class Graph<T> where T : class
         return false;
     }
 
-    public bool AreConnected(int idx1, int idx2) {
+    public bool AreConnected(int idx1, int idx2, bool undirected=true) {
         if (idx1 < adjMatrix.GetLength(0) && idx2 < adjMatrix.GetLength(0)) {
-            return adjMatrix[idx1, idx2] > 0;
+            bool connected = undirected ? (adjMatrix[idx1, idx2] > 0 || adjMatrix[idx2, idx1] > 0) : adjMatrix[idx1, idx2] > 0;
+            return connected;
         }
         return false;
     }
-    public bool AreConnected(T n1, T n2) {
+    public bool AreConnected(T n1, T n2, bool undirected=true) {
         int idx1 = nodes.FindIndex(x => x==n1);
         int idx2 = nodes.FindIndex(x => x==n2);
         if (idx1 >= 0 && idx2 >= 0) {
-            return AreConnected(idx1, idx2);
+            return AreConnected(idx1, idx2, undirected);
         }
         return false;
     }
@@ -230,7 +231,7 @@ public class Graph<T> where T : class
     }
 
     // https://stackoverflow.com/questions/8124626/finding-connected-components-of-adjacency-matrix-graph
-    public List<List<int>> GetConnectedComponents() {
+    public List<List<int>> GetConnectedComponents(bool undirected=true) {
         bool[] visited = new bool[nodes.Count];
         for (int i=0; i<visited.Length; i++) { visited[i] = false; }
         List<int> queue = new List<int>();
@@ -246,7 +247,7 @@ public class Graph<T> where T : class
                         component.Add(v);
                         visited[v] = true;
                         for (int j = 0; j < adjMatrix.GetLength(1); j++) {
-                            if (!visited[j] && AreConnected(v,j)) {
+                            if (!visited[j] && AreConnected(v,j,undirected)) {
                                 Debug.Log(System.String.Format("{0} connected to {1}", v, j));
                                 queue.Add(j);
                             }

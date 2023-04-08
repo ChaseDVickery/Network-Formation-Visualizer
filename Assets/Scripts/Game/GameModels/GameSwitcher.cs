@@ -27,6 +27,9 @@ public class GameSwitcher : MonoBehaviour
     public void Run() {
         currentGame.Run();
     }
+    public void Reverse() {
+        currentGame.Reverse();
+    }
     public void Stop() {
         currentGame.Stop();
     }

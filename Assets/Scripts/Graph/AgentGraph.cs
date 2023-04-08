@@ -475,8 +475,8 @@ public class AgentGraph : MonoBehaviour
     }
     public void AddEdge(Agent a1, Agent a2) {
         if (a1 == null || a2 == null) { return; }
-        if (a1 != a2 && !graph.AreConnected(a1, a2)) {
-            graph.AddEdge(a1, a2);
+        if (a1 != a2 && !graph.AreConnected(a1, a2, undirected)) {
+            graph.AddEdge(a1, a2, 1, undirected);
             GameObject edgeObject = Instantiate(edgePrefab, edgePrefab.transform.position, Quaternion.identity);
             Edge edge = edgeObject.GetComponent<Edge>();
             edge.Connect(a1.transform, a2.transform);
@@ -523,7 +523,8 @@ public class AgentGraph : MonoBehaviour
     }
     public void AddPEdge(Agent a1, Agent a2) {
         if (a1 == null || a2 == null) { return; }
-        if (a1 != a2 && !graph.AreConnected(a1, a2)) {
+        // if (a1 != a2 && !graph.AreConnected(a1, a2, undirected)) {
+        if (a1 != a2) {
             // graph.AddEdge(a1, a2);
             GameObject edgeObject = Instantiate(proposedEdgePrefab, proposedEdgePrefab.transform.position, Quaternion.identity);
             Edge edge = edgeObject.GetComponent<Edge>();
@@ -536,6 +537,7 @@ public class AgentGraph : MonoBehaviour
         // ApplyNetworkRules();
     }
     public void RemovePEdge(Edge edge) {
+        if (edge == null) { return; }
         Agent a1 = edge.n1.GetComponent<Agent>();
         Agent a2 = edge.n2.GetComponent<Agent>();
         // a1.RemoveEdge(edge);
@@ -599,7 +601,7 @@ public class AgentGraph : MonoBehaviour
         for (int i = 0; i < agents.Count; i++) {
             for (int j = undirected ? i : 0; j < agents.Count; j++) {
                 // Only calculate adj graph if two agents are not connected (we get new version in which they are connected)
-                if (i != j && !graph.AreConnected(agents[i], agents[j])) {
+                if (i != j && !graph.AreConnected(agents[i], agents[j], undirected)) {
                     adjGraphs.Add(GetAdjacentGraph(agents[i], agents[j]));
                 }
             }
@@ -612,7 +614,7 @@ public class AgentGraph : MonoBehaviour
         for (int i = 0; i < agents.Count; i++) {
             for (int j = undirected ? i : 0; j < agents.Count; j++) {
                 // Only calculate adj graph if two agents are connected (we get new version in which they are NOT connected)
-                if (i != j && graph.AreConnected(agents[i], agents[j])) {
+                if (i != j && graph.AreConnected(agents[i], agents[j], undirected)) {
                     adjGraphs.Add(GetAdjacentGraph(agents[i], agents[j]));
                 }
             }
