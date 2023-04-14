@@ -6,7 +6,6 @@ using TMPro;
 
 public class RandomGame : NetworkFormationGame
 {
-    public bool simultaneous;
     public float proposalChance = 0.5f;
     public float acceptChance = 0.5f;
 
@@ -22,60 +21,22 @@ public class RandomGame : NetworkFormationGame
     // Creates list of NetworkEvents representing changes to the network
     protected override void PlanStep() {
         base.PlanStep();
-        if (simultaneous) {
-            SimultaneousPlan();
-        } else {
-            SequentialPlan();
-        }
+        SequentialPlan();
         base.PostPlanStep();
-    }
-
-    private void SimultaneousPlan() {
-        NetworkEvent ne = null;
-        // Simultaneous proposals on even steps
-        // Edge acceptance on odd steps
-        if (time % 2 == 0) {
-            for (int i = 0; i < agentGraph.agents.Count; i++) {
-                Agent agent = agentGraph.agents[i];
-                for (int j = 0; j < agentGraph.agents.Count; j++) {
-                    if (i != j) {
-                        Agent other = agentGraph.agents[j];
-                        // Chance to propose if not already connected
-                        if (!agentGraph.graph.AreConnected(i, j, agentGraph.undirected)) {
-                            float roll = RandomQueue.value;
-                            if (roll <= proposalChance) {
-                                ne = PlanProposeEdge(agent, other);
-                            } else {
-                                ne = PlanDoNothing();
-                            }
-                            ne.numRandoms += 1;
-                            Plan(ne);
-                        }
-                    }
-                }
-            }
-        } else {
-            foreach (Agent agent in agentGraph.agents) {
-                // Accept a link
-                List<ProposedEdge> outgoings = GetOutgoingProposals(agent);
-                foreach (ProposedEdge incoming in GetIncomingProposals(agent)) {
-                    // Form a link if other person also proposed a link with you, otherwise deny the incoming edge
-                    if (outgoings.Exists(x => x.end == incoming.start)) {
-                        ne = PlanAcceptEdge(incoming);
-                    } else {
-                        ne = PlanDenyEdge(incoming);
-                    }
-                    Plan(ne);
-                }
-            }
-        }
     }
 
     private void SequentialPlan() {
         NetworkEvent ne = null;
+        // Choose random link, Check if toggling link would
         // Order over players who propose links
         Agent curr = agentGraph.agents[currPlayerIdx];
         currHighlights.Add(curr);
+        // Propose random edge insertion or deletion
+        if (time % 2 == 0) {
+
+        } else {
+
+        }
         // Accept or deny any proposed links involving you as the end
         List<Agent> accepted = new List<Agent>();
         foreach (ProposedEdge pedge in GetIncomingProposals(curr)) {

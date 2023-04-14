@@ -32,6 +32,18 @@ public class PanelScrollout : MonoBehaviour
         atTarget = !atTarget;
     }
 
+    public void ClosePanel() {
+        StopCoroutine("ScrollCoroutine");
+        StartCoroutine(ScrollCoroutine(hiddenPos, scrollTime));
+        atTarget = false;
+    }
+
+    public void OpenPanel() {
+        StopCoroutine("ScrollCoroutine");
+        StartCoroutine(ScrollCoroutine(targetPos, scrollTime));
+        atTarget = true;
+    }
+
     IEnumerator ScrollCoroutine(RectTransform to, float time) {
         float timer = 0f;
         Vector3 startPos = rt.anchoredPosition;

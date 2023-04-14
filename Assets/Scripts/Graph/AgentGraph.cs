@@ -279,19 +279,28 @@ public class AgentGraph : MonoBehaviour
 
     public List<float> CalculateAllocation(Graph<Agent> toCalculate = null) {
         // Use my current graph if no other specified
+        bool temp = true;
         if (toCalculate == null) {
             toCalculate = graph;
+            temp = false;
         } 
+        float v = System.Single.MinValue;
+        List<float> a = null;
         // Calculate the Value of the graph as well as the per-agent allocations
         if (rules.direction == ValueFlow.VALUE_TO_ALLOC) {
-            value = rules.GetNetworkValue(toCalculate, null);
-            allocations = rules.GetAllocation(toCalculate, value);
+            v = rules.GetNetworkValue(toCalculate, null);
+            a = rules.GetAllocation(toCalculate, value);
         } else if (rules.direction == ValueFlow.ALLOC_TO_VALUE) {
-            allocations = rules.GetAllocation(toCalculate, 0);
-            value = rules.GetNetworkValue(toCalculate, allocations);
+            a = rules.GetAllocation(toCalculate, 0);
+            v = rules.GetNetworkValue(toCalculate, allocations);
+        }
+
+        if (!temp) {
+            allocations = a;
+            value = v;
         }
         
-        return allocations;
+        return a;
     }
 
     public void UpdateAllocations(Graph<Agent> toCalculate = null) {
@@ -519,7 +528,7 @@ public class AgentGraph : MonoBehaviour
     }
     public bool AddEdge(Agent a1, Agent a2) {
         bool edge_created = false;
-        if (a1 == null || a2 == null) { edge_created = false; }
+        if (a1 == null || a2 == null) { edge_created = false; return edge_created; }
         if (a1 != a2 && !graph.AreConnected(a1, a2, undirected)) {
             graph.AddEdge(a1, a2, 1, undirected);
             GameObject edgeObject = Instantiate(edgePrefab, edgePrefab.transform.position, Quaternion.identity);
@@ -536,8 +545,6 @@ public class AgentGraph : MonoBehaviour
         return edge_created;
     }
     public void RemoveEdge(Edge edge) {
-        Debug.Log(edge);
-        Debug.Log(edge.n1);
         Agent a1 = edge.n1.GetComponent<Agent>();
         Agent a2 = edge.n2.GetComponent<Agent>();
         a1.RemoveEdge(edge);

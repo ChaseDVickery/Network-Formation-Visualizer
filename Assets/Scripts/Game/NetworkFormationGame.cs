@@ -66,11 +66,22 @@ public class NetworkFormationGame : MonoBehaviour
     protected List<ProposedEdge> GetIncomingProposals(Agent agent) { return proposedEdges.FindAll(p => p.end == agent); }
     protected List<ProposedEdge> GetOutgoingProposals(Agent agent) { return proposedEdges.FindAll(p => p.start == agent); }
 
+    protected List<float> CalculateTempAllocations(Graph<Agent> toCalculate) {
+        if (agentGraph.rules.direction == ValueFlow.VALUE_TO_ALLOC) {
+            float value = agentGraph.rules.GetNetworkValue(toCalculate, null);
+            return agentGraph.rules.GetAllocation(toCalculate, value);
+        } else if (agentGraph.rules.direction == ValueFlow.ALLOC_TO_VALUE) {
+            return agentGraph.rules.GetAllocation(toCalculate, 0);
+        }
+        return new List<float>();
+    }
+
     // Resets the parameters and history of the game
     // Should also be called when user changes the graph.
     public virtual void Reset() {
         highlights.Clear();
 
+        agentGraph.ClearPEdges();
         agentGraph.DeselectAll();
         agentGraph.inputEnabled = false;
         LinkGraph(agentGraph);
@@ -312,6 +323,7 @@ public class NetworkFormationGame : MonoBehaviour
             }
             highlights.RemoveAt(highlights.Count-1);
         }
+        agentGraph.RefreshView();
         onUndoStep.Invoke();
     }
 
@@ -385,6 +397,15 @@ public class ProposedEdge {
     public Agent start;
     public Agent end;
     public ProposedEdge(Agent s, Agent e) {
+        start = s; end = e;
+    }
+}
+
+[System.Serializable]
+public class ProposedDeletion {
+    public Agent start;
+    public Agent end;
+    public ProposedDeletion(Agent s, Agent e) {
         start = s; end = e;
     }
 }

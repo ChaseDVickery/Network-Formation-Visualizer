@@ -6,11 +6,11 @@ using TMPro;
 
 public class GameInfoDisplay : MonoBehaviour
 {
-    public NetworkFormationGame game;
+    public GameSwitcher gameSwitcher;
 
     public TMP_Text timestepText;
 
     public void UpdateInfo() {
-        timestepText.text = "Step: " + game.time.ToString();
+        timestepText.text = "Step: " + gameSwitcher.currentGame.time.ToString();
     }
 }
