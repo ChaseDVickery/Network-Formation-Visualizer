@@ -212,7 +212,7 @@ public class NetworkFormationGame : MonoBehaviour
         // Apply each planned action to the network
         foreach (NetworkEvent ne in workingHistory) {
             if (ne.action == NetworkAction.CONNECT) {
-                agentGraph.AddEdge(ne.agentStart, ne.agentEnd);
+                ne.edge_created = agentGraph.AddEdge(ne.agentStart, ne.agentEnd);
             } else if (ne.action == NetworkAction.DISCONNECT) {
                 agentGraph.RemoveEdge(agentGraph.EdgeAt(ne.agentStart, ne.agentEnd));
             } else if (ne.action == NetworkAction.PROPOSE_EDGE) {
@@ -222,7 +222,8 @@ public class NetworkFormationGame : MonoBehaviour
                 proposedEdges.Remove(ne.proposal);
                 agentGraph.RemovePEdge(agentGraph.PEdgeAt(ne.proposal.start, ne.proposal.end));
                 // if (agentGraph.undirected) { agentGraph.RemovePEdge(agentGraph.PEdgeAt(ne.proposal.end, ne.proposal.start)); }
-                agentGraph.AddEdge(ne.proposal.start, ne.proposal.end);
+                // Debug.Log("Accepting Edge Proposal: " + ne.proposal.start.agentName + ", " + ne.proposal.end.agentName + "  :  " + agentGraph.agents.IndexOf(ne.proposal.start) + ", " + agentGraph.agents.IndexOf(ne.proposal.end));
+                ne.edge_created = agentGraph.AddEdge(ne.proposal.start, ne.proposal.end);
             } else if (ne.action == NetworkAction.DENY_EDGE) {
                 agentGraph.RemovePEdge(agentGraph.PEdgeAt(ne.proposal.start, ne.proposal.end));
                 proposedEdges.Remove(ne.proposal);
@@ -251,7 +252,10 @@ public class NetworkFormationGame : MonoBehaviour
 
     private void UndoEvent(NetworkEvent ne) {
         if (ne.action == NetworkAction.CONNECT) {
-            agentGraph.RemoveEdge(agentGraph.EdgeAt(ne.agentStart, ne.agentEnd));
+            if (ne.edge_created) {
+                ne.edge_created = false;
+                agentGraph.RemoveEdge(agentGraph.EdgeAt(ne.agentStart, ne.agentEnd));
+            }
         } else if (ne.action == NetworkAction.DISCONNECT) {
             agentGraph.AddEdge(ne.agentStart, ne.agentEnd);
         } else if (ne.action == NetworkAction.PROPOSE_EDGE) {
@@ -260,7 +264,12 @@ public class NetworkFormationGame : MonoBehaviour
         } else if (ne.action == NetworkAction.ACCEPT_EDGE) {
             // Remove edge from real graph first, so it looks like they are no longer
             // connected before adding pEdge back
-            agentGraph.RemoveEdge(agentGraph.EdgeAt(ne.proposal.start, ne.proposal.end));
+            if (ne.edge_created) {
+                ne.edge_created = false;
+                // Debug.Log("Removing Accepted Edge Proposal: " + ne.proposal.start.agentName + ", " + ne.proposal.end.agentName + "  :  " + agentGraph.agents.IndexOf(ne.proposal.start) + ", " + agentGraph.agents.IndexOf(ne.proposal.end));
+                agentGraph.RemoveEdge(agentGraph.EdgeAt(ne.proposal.start, ne.proposal.end));
+            }
+            // Always add proposed edge back because they should always be there
             proposedEdges.Add(ne.proposal);
             agentGraph.AddPEdge(ne.proposal.start, ne.proposal.end);
         } else if (ne.action == NetworkAction.DENY_EDGE) {
@@ -388,6 +397,8 @@ public class NetworkEvent {
 
     public Agent agentStart;
     public Agent agentEnd;
+
+    public bool edge_created = false;
 
     public ProposedEdge proposal;
 

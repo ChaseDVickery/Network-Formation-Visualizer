@@ -41,6 +41,7 @@ public class AgentGraph : MonoBehaviour
     private DragType dragType;
 
     private bool ctrlDown;
+    private bool shiftDown;
 
     public UnityEvent onRefreshView;
 
@@ -61,7 +62,9 @@ public class AgentGraph : MonoBehaviour
                 GameObject newAgentObj = Instantiate(agentPrefab);
                 // newAgentObj.transform.position = new Vector3(Random.Range(-8.0f, 8.0f), Random.Range(-5.0f, 5.0f), 0);
                 newAgentObj.transform.position = new Vector3(3*Mathf.Cos(2*Mathf.PI*i/(numAgents)), 3*Mathf.Sin(2*Mathf.PI*i/(numAgents)), 0);
-                agents.Add(newAgentObj.GetComponent<Agent>());
+                Agent a = newAgentObj.GetComponent<Agent>();
+                a.agentName = "a" + i;
+                agents.Add(a);
             }
         }
         List<Agent> tempList = new List<Agent>();
@@ -161,6 +164,13 @@ public class AgentGraph : MonoBehaviour
         //     CalculateAllocation();
         // }
 
+        if (Input.GetKeyDown(KeyCode.Keypad1) || Input.GetKeyDown(KeyCode.Alpha1)) {
+            SelectAllAgents();
+        }
+        if (Input.GetKeyDown(KeyCode.Keypad2) || Input.GetKeyDown(KeyCode.Alpha2)) {
+            SelectAllEdges();
+        }
+
         if (Input.GetKeyDown("g")) {
             // GetAllAdjacentGraphs();
             IsPairwiseStable();
@@ -185,6 +195,8 @@ public class AgentGraph : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl)) { ctrlDown = true; }
         if (Input.GetKeyUp(KeyCode.LeftControl) || Input.GetKeyUp(KeyCode.RightControl)) { ctrlDown = false; }
+        if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift)) { shiftDown = true; }
+        if (Input.GetKeyUp(KeyCode.LeftShift) || Input.GetKeyUp(KeyCode.RightShift)) { shiftDown = false; }
 
         if (EventSystem.current.currentSelectedGameObject != null) {
             return;
@@ -346,6 +358,37 @@ public class AgentGraph : MonoBehaviour
         }
     }
 
+    public void SelectAllAgents(bool isAlt=false) {
+        if (isAlt) {
+            selectorSecondary.ClearSelection();
+            AltSelectObject(null);
+            foreach (Agent agent in agents) {
+                selectorSecondary.AddToSelection(agent.gameObject);
+            }
+        } else {
+            selectorPrimary.ClearSelection();
+            SelectObject(null);
+            foreach (Agent agent in agents) {
+                selectorPrimary.AddToSelection(agent.gameObject);
+            }
+        }
+    }
+    public void SelectAllEdges(bool isAlt=false) {
+        if (isAlt) {
+            selectorSecondary.ClearSelection();
+            AltSelectObject(null);
+            foreach (Edge edge in edges) {
+                selectorSecondary.AddToSelection(edge.gameObject);
+            }
+        } else {
+            selectorPrimary.ClearSelection();
+            SelectObject(null);
+            foreach (Edge edge in edges) {
+                selectorPrimary.AddToSelection(edge.gameObject);
+            }
+        }
+    }
+
     public void RefreshView() {
         foreach (Edge edge in edges) {
             edge.Refresh();
@@ -471,10 +514,12 @@ public class AgentGraph : MonoBehaviour
 
     // START EDGES ********************************************************************
     public Edge EdgeAt(Agent a1, Agent a2) {
+        // Debug.Log("Edge At: " + agents.IndexOf(a1) + ", " + agents.IndexOf(a2));
         return edgeMatrix[agents.IndexOf(a1), agents.IndexOf(a2)];
     }
-    public void AddEdge(Agent a1, Agent a2) {
-        if (a1 == null || a2 == null) { return; }
+    public bool AddEdge(Agent a1, Agent a2) {
+        bool edge_created = false;
+        if (a1 == null || a2 == null) { edge_created = false; }
         if (a1 != a2 && !graph.AreConnected(a1, a2, undirected)) {
             graph.AddEdge(a1, a2, 1, undirected);
             GameObject edgeObject = Instantiate(edgePrefab, edgePrefab.transform.position, Quaternion.identity);
@@ -483,11 +528,16 @@ public class AgentGraph : MonoBehaviour
             edges.Add(edge);
             a1.AddEdge(edge);
             a2.AddEdge(edge);
+            // Debug.Log("Adding Edge At: " + agents.IndexOf(a1) + ", " + agents.IndexOf(a2));
             edgeMatrix[agents.IndexOf(a1), agents.IndexOf(a2)] = edge;
+            edge_created = true;
         }
         ApplyNetworkRules();
+        return edge_created;
     }
     public void RemoveEdge(Edge edge) {
+        Debug.Log(edge);
+        Debug.Log(edge.n1);
         Agent a1 = edge.n1.GetComponent<Agent>();
         Agent a2 = edge.n2.GetComponent<Agent>();
         a1.RemoveEdge(edge);
