@@ -96,26 +96,32 @@ public class Edge : MonoBehaviour, IInteractable
     }
 
     public void Hover() {
+        if (lren == null) {return;}
         lren.startColor = selectionColor;
         lren.endColor = selectionColor;
     }
     public void Unhover() {
+        if (lren == null) {return;}
         lren.startColor = origColorStart;
         lren.endColor = origColorEnd;
     }
     public void Select() {
+        if (lren == null) {return;}
         lren.startColor = selectionColor;
         lren.endColor = selectionColor;
     }
     public void Deselect() {
+        if (lren == null) {return;}
         lren.startColor = origColorStart;
         lren.endColor = origColorEnd;
     }
     public void AltSelect() {
+        if (lren == null) {return;}
         lren.startColor = altSelectionColor;
         lren.endColor = altSelectionColor;
     }
     public void AltDeselect() {
+        if (lren == null) {return;}
         lren.startColor = origColorStart;
         lren.endColor = origColorEnd;
     }

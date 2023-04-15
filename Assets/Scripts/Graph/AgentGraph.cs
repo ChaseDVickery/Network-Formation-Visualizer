@@ -128,10 +128,10 @@ public class AgentGraph : MonoBehaviour
         }
         // Copy the edges
         edges = new List<Edge>();
-        foreach (Edge edge in other.edges) { edges.Add(edge); }
+        foreach (Edge edge in other.edges) { if (edge != null) edges.Add(edge); }
         // Copy the agents
         agents = new List<Agent>();
-        foreach (Agent agent in other.agents) { agents.Add(agent); }
+        foreach (Agent agent in other.agents) { if (agent != null) agents.Add(agent); }
         // Copy the graph
         graph = new Graph<Agent>(agents);
         graph.CopyFrom(other.graph);
@@ -142,6 +142,24 @@ public class AgentGraph : MonoBehaviour
         pEdgeMatrix = ResizeEdgeMatrix(other.pEdgeMatrix);
         // edgeMatrix = other.edgeMatrix;
         // pEdgeMatrix = other.pEdgeMatrix;
+        // Remake edges that are present in copy but not present in this one
+        for (int i = 0; i < other.graph.adjMatrix.GetLength(0); i++) {
+            for (int j = 0; j < other.graph.adjMatrix.GetLength(1); j++) {
+                if (other.graph.adjMatrix[i,j] != 0 && EdgeAt(agents[i], agents[j]) == null) {
+                    Agent a1 = agents[i];
+                    Agent a2 = agents[j];
+                    // graph.AddEdge(a1, a2, 1, undirected);
+                    GameObject edgeObject = Instantiate(edgePrefab, edgePrefab.transform.position, Quaternion.identity);
+                    Edge edge = edgeObject.GetComponent<Edge>();
+                    edge.Connect(a1.transform, a2.transform);
+                    edges.Add(edge);
+                    a1.AddEdge(edge);
+                    a2.AddEdge(edge);
+                    // Debug.Log("Adding Edge At: " + agents.IndexOf(a1) + ", " + agents.IndexOf(a2));
+                    edgeMatrix[agents.IndexOf(a1), agents.IndexOf(a2)] = edge;
+                }
+            }
+        }
     }
 
     // public void SetGraph(Graph<Agent> newGraph) {
