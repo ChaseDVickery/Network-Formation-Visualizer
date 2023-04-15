@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Reflection;
 
 using TMPro;
 
@@ -9,7 +10,6 @@ public class RandomGame : NetworkFormationGame
     public bool simultaneous;
     public float proposalChance = 0.5f;
     public float acceptChance = 0.5f;
-
 
     // Resets the parameters and history of the game
     // Should also be called when user changes the graph.

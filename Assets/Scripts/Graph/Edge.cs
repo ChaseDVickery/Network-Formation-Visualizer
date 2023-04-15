@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
+using Interactable;
+
 [RequireComponent(typeof(LineRenderer))]
-public class Edge : MonoBehaviour
+public class Edge : MonoBehaviour, IInteractable
 {
 
     private Transform c1;
@@ -93,6 +95,14 @@ public class Edge : MonoBehaviour
         }
     }
 
+    public void Hover() {
+        lren.startColor = selectionColor;
+        lren.endColor = selectionColor;
+    }
+    public void Unhover() {
+        lren.startColor = origColorStart;
+        lren.endColor = origColorEnd;
+    }
     public void Select() {
         lren.startColor = selectionColor;
         lren.endColor = selectionColor;

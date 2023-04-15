@@ -22,7 +22,8 @@ static class ListExtensions
         while (n > 1)
         {
             n--;
-            int k = ThreadSafeRandom.ThisThreadsRandom.Next(n + 1);
+            // int k = ThreadSafeRandom.ThisThreadsRandom.Next(n + 1);
+            int k = RandomQueue.GetInt(0, n + 1);
             T value = list[k];
             list[k] = list[n];
             list[n] = value;

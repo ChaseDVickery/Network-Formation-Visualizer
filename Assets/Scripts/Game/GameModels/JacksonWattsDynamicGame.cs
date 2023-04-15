@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System.Reflection;
 
 using TMPro;
 
 public class JacksonWattsDynamicGame : NetworkFormationGame
 {
-    public float proposalChance = 0.5f;
-    public float acceptChance = 0.5f;
-
+    // public float proposalChance = 0.5f;
+    // public float acceptChance = 0.5f;
 
     // Resets the parameters and history of the game
     // Should also be called when user changes the graph.
@@ -32,8 +32,12 @@ public class JacksonWattsDynamicGame : NetworkFormationGame
         // Order over players who propose links
         // Propose random edge insertion or deletion
         if (time % 2 == 0) {
+            // Shuffle (uses randomness, account for in RandomQueue)
             List<int> idcs = Enumerable.Range(0,agentGraph.agents.Count).ToArray().ToList();
             idcs.Shuffle();
+            ne = PlanDoNothing();
+            ne.numRandomsInt = agentGraph.agents.Count-1;
+            Plan(ne);
             Agent a1 = agentGraph.agents[idcs[0]];
             Agent a2 = agentGraph.agents[idcs[1]];
             float a1alloc = agentGraph.allocations[idcs[0]];
@@ -48,6 +52,8 @@ public class JacksonWattsDynamicGame : NetworkFormationGame
                 if (a1new > a1alloc) {
                     ne = PlanDisconnect(a1, a2);
                     Plan(ne);
+                } else {
+                    currHighlights.Add(agentGraph.EdgeAt(a1, a2));
                 }
             } else {
                 // Propose Edge Insertion

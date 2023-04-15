@@ -1,7 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using System.Reflection;
+using System.Linq;
 
 using Interactable;
 
@@ -21,7 +24,7 @@ public class NetworkFormationGame : MonoBehaviour
     [SerializeField]
     protected List<NetworkEvent> history;
 
-    [Range(0.01f, 1f)]
+    [Range(0.01f, 2f)]
     public float stepTime = 0.1f;
     private IEnumerator runCoroutine;
     private IEnumerator reverseCoroutine;
@@ -40,13 +43,29 @@ public class NetworkFormationGame : MonoBehaviour
     public UnityEvent onPostStep;
     public UnityEvent onUndoStep;
 
+    private List<Type> subclasses;
+
     void Start() {
+        subclasses = new List<Type>();
+        // https://stackoverflow.com/questions/8928464/for-an-object-can-i-get-all-its-subclasses-using-reflection-or-other-ways
+        foreach (Type type in typeof(NetworkFormationGame).Assembly.GetTypes().Where(type => type.IsSubclassOf(typeof(NetworkFormationGame)))) {
+            subclasses.Add(type);
+        }
         workingHistory = new List<NetworkEvent>();
         history = new List<NetworkEvent>();
         proposedEdges = new List<ProposedEdge>();
         highlights = new List<List<IInteractable>>();
         
         if (agentGraph != null) { LinkGraph(agentGraph); }
+    }
+
+    public virtual void UpdateInfo(string key, System.Object value) {
+        Debug.Log(key);
+        
+        foreach (Type type in subclasses) {
+            FieldInfo updateField = type.GetField(key);
+            if (updateField != null) { updateField.SetValue(this, value); }
+        }
     }
 
     public void LinkGraph(AgentGraph graph) {
@@ -77,6 +96,11 @@ public class NetworkFormationGame : MonoBehaviour
         return new List<float>();
     }
 
+    public void LinkInterface(GameRulesModifier rulesInterface) {
+        rulesInterface.game = this;
+        rulesInterface.UpdateRules();
+    }
+
     // Resets the parameters and history of the game
     // Should also be called when user changes the graph.
     public virtual void Reset() {
@@ -86,6 +110,9 @@ public class NetworkFormationGame : MonoBehaviour
         agentGraph.DeselectAll();
         agentGraph.inputEnabled = false;
         LinkGraph(agentGraph);
+
+        RandomQueue.Clear();
+        RandomQueue.ClearInt();
 
         workingHistory.Clear();
         history.Clear();
@@ -183,7 +210,7 @@ public class NetworkFormationGame : MonoBehaviour
 
     // Ends the game and resets the AgentGraph to its state before the the game
     public void StopRestoreGraph() {
-        if (highlights.Count >= 1) {
+        if (highlights != null && highlights.Count >= 1) {
             foreach (IInteractable interactable in highlights[highlights.Count-1]) {
                 interactable.Deselect();
             }
@@ -251,13 +278,13 @@ public class NetworkFormationGame : MonoBehaviour
         // Deselect those from last step
         if (highlights.Count >= 2) {
             foreach (IInteractable interactable in highlights[highlights.Count-2]) {
-                interactable.Deselect();
+                if (interactable != null) interactable.Deselect();
             }
         }
         // Select those from this step
         if (highlights.Count >= 1) {
             foreach (IInteractable interactable in highlights[highlights.Count-1]) {
-                interactable.Select();
+                if (interactable != null) interactable.Select();
             }
         }
     }
@@ -291,9 +318,8 @@ public class NetworkFormationGame : MonoBehaviour
         history.Remove(ne);
 
         // Undo random rolls if there were any
-        for (int i = 0; i < ne.numRandoms; i++) {
-            RandomQueue.Undo();
-        }
+        for (int i = 0; i < ne.numRandoms; i++) { RandomQueue.Undo(); }
+        for (int i = 0; i < ne.numRandomsInt; i++) { RandomQueue.UndoInt(); }
     }
 
     // Attempts to undo every NetworkEvent from last timestep and
@@ -439,6 +465,7 @@ public class NetworkEvent {
     public ProposedDeletion proposal_d;
 
     public int numRandoms = 0;
+    public int numRandomsInt = 0;
 }
 
 // Represents the type of change made

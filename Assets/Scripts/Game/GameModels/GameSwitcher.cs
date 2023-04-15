@@ -12,6 +12,9 @@ public class GameSwitcher : MonoBehaviour
     public List<NetworkFormationGame> gameChoices;
     public NetworkFormationGame currentGame;
 
+    public List<GameRulesModifier> modifierInterfaces;
+    public GameRulesModifier currentModifier;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -20,8 +23,19 @@ public class GameSwitcher : MonoBehaviour
 
     public void ChangeModel(int idx) {
         currentGame = gameChoices[idx];
+        currentModifier = modifierInterfaces[idx];
         // Change Current Game
         currentGame.LinkGraph(agentGraph);
+        currentGame.LinkInterface(currentModifier);
+
+        // StopRestoreGraph();
+    }
+
+    public void ShowCurrentModifierInterface() {
+        currentModifier.gameObject.SetActive(true);
+    }
+    public void HideCurrentModifierInterface() {
+        currentModifier.gameObject.SetActive(false);
     }
 
     public void Run() {
