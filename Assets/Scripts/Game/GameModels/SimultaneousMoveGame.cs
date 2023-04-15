@@ -38,7 +38,6 @@ public class SimultaneousMoveGame : NetworkFormationGame
                 Agent agent = agentGraph.agents[i];
                 float myAlloc = agentGraph.allocations[i];
                 float maxAlloc = myAlloc;
-                Debug.Log(i + " alloc: " + myAlloc);
                 for (int j = 0; j < agentGraph.agents.Count; j++) {
                     if (i != j) {
                         Agent other = agentGraph.agents[j];
@@ -46,7 +45,6 @@ public class SimultaneousMoveGame : NetworkFormationGame
                         List<float> newAllocations = CalculateTempAllocations(adjacent);
                         // Propose an edge if that single connection would increase my payoff
                         // NOTE: this does NOT consider my payoff if I were to get multiple connections at the same time.
-                        Debug.Log("My Hypothetical Alloc: (" + i + "," + j + "): " + newAllocations[i]);
                         if (newAllocations[i] > myAlloc) {
                             if (!agentGraph.graph.AreConnected(agent, other, agentGraph.undirected)) {
                                 ne = PlanProposeEdge(agent, other);

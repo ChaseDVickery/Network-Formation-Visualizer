@@ -67,6 +67,7 @@ public class RandomGame : NetworkFormationGame
                     }
                     Plan(ne);
                 }
+
             }
         }
     }

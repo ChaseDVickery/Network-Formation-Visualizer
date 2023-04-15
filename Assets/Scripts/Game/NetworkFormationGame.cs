@@ -65,6 +65,7 @@ public class NetworkFormationGame : MonoBehaviour
 
     protected List<ProposedEdge> GetIncomingProposals(Agent agent) { return proposedEdges.FindAll(p => p.end == agent); }
     protected List<ProposedEdge> GetOutgoingProposals(Agent agent) { return proposedEdges.FindAll(p => p.start == agent); }
+    protected List<ProposedEdge> GetProposals() { return proposedEdges; }
 
     protected List<float> CalculateTempAllocations(Graph<Agent> toCalculate) {
         if (agentGraph.rules.direction == ValueFlow.VALUE_TO_ALLOC) {
@@ -358,6 +359,18 @@ public class NetworkFormationGame : MonoBehaviour
         return ne;
     }
 
+    // protected NetworkEvent PlanProposeDeleteEdge(Agent a1, Agent a2) {
+    //     NetworkEvent ne = new NetworkEvent();
+    //     // if (agentGraph.graph.AreConnected(a1, a2)) {
+    //     //     ne.action = NetworkAction.DO_NOTHING;
+    //     // } else{
+    //         ne.action = NetworkAction.PROPOSE_DELETE;
+    //         ne.agentStart = a1;
+    //         ne.agentEnd = a2;
+    //         ne.proposal = new ProposedDeletion(a1, a2);
+    //     // }
+    //     return ne;
+    // }
     protected NetworkEvent PlanProposeEdge(Agent a1, Agent a2) {
         NetworkEvent ne = new NetworkEvent();
         // if (agentGraph.graph.AreConnected(a1, a2)) {
@@ -396,6 +409,7 @@ public class NetworkFormationGame : MonoBehaviour
 public class ProposedEdge {
     public Agent start;
     public Agent end;
+    public bool preAccept = false;
     public ProposedEdge(Agent s, Agent e) {
         start = s; end = e;
     }
@@ -422,6 +436,7 @@ public class NetworkEvent {
     public bool edge_created = false;
 
     public ProposedEdge proposal;
+    public ProposedDeletion proposal_d;
 
     public int numRandoms = 0;
 }
@@ -429,6 +444,7 @@ public class NetworkEvent {
 // Represents the type of change made
 [System.Serializable]
 public enum NetworkAction {
+    PROPOSE_DELETE,
     PROPOSE_EDGE,
     ACCEPT_EDGE,
     DENY_EDGE,

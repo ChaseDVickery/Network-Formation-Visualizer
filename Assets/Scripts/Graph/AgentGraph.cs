@@ -524,6 +524,11 @@ public class AgentGraph : MonoBehaviour
     // START EDGES ********************************************************************
     public Edge EdgeAt(Agent a1, Agent a2) {
         // Debug.Log("Edge At: " + agents.IndexOf(a1) + ", " + agents.IndexOf(a2));
+        if (undirected) {
+            if ((edgeMatrix[agents.IndexOf(a1), agents.IndexOf(a2)]) == null) {
+                return (edgeMatrix[agents.IndexOf(a2), agents.IndexOf(a1)]);
+            }
+        }
         return edgeMatrix[agents.IndexOf(a1), agents.IndexOf(a2)];
     }
     public bool AddEdge(Agent a1, Agent a2) {

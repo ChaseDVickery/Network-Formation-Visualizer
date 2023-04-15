@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 using TMPro;
 
-public class RandomGame : NetworkFormationGame
+public class JacksonWattsDynamicGame : NetworkFormationGame
 {
     public float proposalChance = 0.5f;
     public float acceptChance = 0.5f;
@@ -29,41 +30,45 @@ public class RandomGame : NetworkFormationGame
         NetworkEvent ne = null;
         // Choose random link, Check if toggling link would
         // Order over players who propose links
-        Agent curr = agentGraph.agents[currPlayerIdx];
-        currHighlights.Add(curr);
         // Propose random edge insertion or deletion
         if (time % 2 == 0) {
-
-        } else {
-
-        }
-        // Accept or deny any proposed links involving you as the end
-        List<Agent> accepted = new List<Agent>();
-        foreach (ProposedEdge pedge in GetIncomingProposals(curr)) {
-            float roll = RandomQueue.value;
-            if (roll <= acceptChance) {
-                ne = PlanAcceptEdge(pedge);
-                // Track accepted edge to make sure you don't propose back on same planning step
-                if (ne.action == NetworkAction.ACCEPT_EDGE) { accepted.Add(pedge.start); }
-            } else {
-                ne = PlanDenyEdge(pedge);
-            }
-            ne.numRandoms += 1;
-            Plan(ne);
-        }
-        // Send out potential proposals
-        for (int i = 0; i < agentGraph.agents.Count; i++) {
-            Agent other = agentGraph.agents[i];
-            // Chance to propose to NOT yourself and not already connected and not accepted proposal
-            if (i != currPlayerIdx && !accepted.Contains(other) && !agentGraph.graph.AreConnected(curr, other, agentGraph.undirected)) {
-                float roll = RandomQueue.value;
-                if (roll <= proposalChance) {
-                    ne = PlanProposeEdge(curr, agentGraph.agents[i]);
-                } else {
-                    ne = PlanDoNothing();
+            List<int> idcs = Enumerable.Range(0,agentGraph.agents.Count).ToArray().ToList();
+            idcs.Shuffle();
+            Agent a1 = agentGraph.agents[idcs[0]];
+            Agent a2 = agentGraph.agents[idcs[1]];
+            float a1alloc = agentGraph.allocations[idcs[0]];
+            float a2alloc = agentGraph.allocations[idcs[1]];
+            AdjGraph<Agent> adjacent = agentGraph.GetAdjacentGraph(a1, a2);
+            List<float> newAllocations = CalculateTempAllocations(adjacent);
+            float a1new = newAllocations[idcs[0]];
+            float a2new = newAllocations[idcs[1]];
+            if (agentGraph.graph.AreConnected(a1, a2, agentGraph.undirected)) {
+                // Propose Edge Destruction if a1 would be better off without it
+                // should I also check for a2?
+                if (a1new > a1alloc) {
+                    ne = PlanDisconnect(a1, a2);
+                    Plan(ne);
                 }
-                ne.numRandoms += 1;
-                Plan(ne);
+            } else {
+                // Propose Edge Insertion
+                if ((a1new > a1alloc && a2new >= a2alloc) || (a1new >= a1alloc && a2new > a2alloc)) {
+                    ne = PlanProposeEdge(a1, a2);
+                    ne.proposal.preAccept = true;
+                    Plan(ne);
+                } else {
+                    ne = PlanProposeEdge(a1, a2);
+                    Plan(ne);
+                }
+            }
+        } else {
+            foreach (ProposedEdge pedge in GetProposals()) {
+                if (pedge.preAccept) {
+                    ne = PlanAcceptEdge(pedge);
+                    Plan(ne);
+                } else {
+                    ne = PlanDenyEdge(pedge);
+                    Plan(ne);
+                }
             }
         }
     }
