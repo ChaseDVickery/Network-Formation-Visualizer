@@ -176,6 +176,7 @@ public class AgentGraph : MonoBehaviour
     void Update()
     {
 
+        RefreshView();
         if (!inputEnabled) { return; }
 
         // if (Input.GetKeyDown("g")) {
@@ -237,7 +238,7 @@ public class AgentGraph : MonoBehaviour
             dragType = DragType.NONE;
             selectorPrimary.GetSnapshot();
             selectorPrimary.Deactivate();
-            selectorPrimary.transform.position = new Vector3(-100, -100, 0);
+            selectorPrimary.transform.position = new Vector3(-10000, -10000, 10);
         }
 
         if (Input.GetMouseButtonDown(1)) {
@@ -257,7 +258,7 @@ public class AgentGraph : MonoBehaviour
             dragType = DragType.NONE;
             selectorSecondary.GetSnapshot();
             selectorSecondary.Deactivate();
-            selectorSecondary.transform.position = new Vector3(-100, -100, 0);
+            selectorSecondary.transform.position = new Vector3(-10000, -10000, 0);
         }
 
         if (dragType == DragType.LEFT) {

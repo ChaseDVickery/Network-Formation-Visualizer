@@ -2,6 +2,7 @@ namespace Interactable {
     public enum DragType {
         NONE,
         LEFT,
-        RIGHT
+        RIGHT,
+        MIDDLE,
     }
 }
