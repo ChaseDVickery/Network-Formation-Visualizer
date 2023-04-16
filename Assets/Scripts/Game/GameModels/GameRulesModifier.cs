@@ -12,6 +12,10 @@ public class GameRulesModifier : MonoBehaviour
     public List<Toggle> toggles;
 
     void Start() {
+        Initialize();
+    }
+
+    public void Initialize() {
         for (int i = 0; i < transform.childCount; i++) {
             GameObject go = transform.GetChild(i).gameObject;
             Slider slider = go.GetComponent<Slider>();

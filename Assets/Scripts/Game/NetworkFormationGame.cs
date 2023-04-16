@@ -60,8 +60,6 @@ public class NetworkFormationGame : MonoBehaviour
     }
 
     public virtual void UpdateInfo(string key, System.Object value) {
-        Debug.Log(key);
-        
         foreach (Type type in subclasses) {
             FieldInfo updateField = type.GetField(key);
             if (updateField != null) { updateField.SetValue(this, value); }
@@ -205,6 +203,7 @@ public class NetworkFormationGame : MonoBehaviour
         Pause();
         agentGraph.ClearPEdges();
         agentGraph.inputEnabled = true;
+        agentGraph.DeselectAll();
         agentGraph.RefreshView();
     }
 
@@ -220,6 +219,7 @@ public class NetworkFormationGame : MonoBehaviour
         agentGraph.ClearPEdges();
         agentGraph.CopyFromBackup(backupAgentGraph);
         agentGraph.inputEnabled = true;
+        agentGraph.DeselectAll();
         agentGraph.RefreshView();
     }
 

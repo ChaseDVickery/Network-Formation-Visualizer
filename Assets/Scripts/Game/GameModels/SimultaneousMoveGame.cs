@@ -31,7 +31,7 @@ public class SimultaneousMoveGame : NetworkFormationGame
         // Simultaneous proposals on even steps
         // Edge commits on odd steps
         // PROPOSALS
-        if (time >= 2) { return; }
+        // if (time >= 2) { return; }
         if (time % 2 == 0) {
             // Look at all edges,
             // If adding edge would improve my payoff, then propose edge

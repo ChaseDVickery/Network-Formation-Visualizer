@@ -258,7 +258,7 @@ public class AgentGraph : MonoBehaviour
             dragType = DragType.NONE;
             selectorSecondary.GetSnapshot();
             selectorSecondary.Deactivate();
-            selectorSecondary.transform.position = new Vector3(-10000, -10000, 0);
+            selectorSecondary.transform.position = new Vector3(10000, 10000, 0);
         }
 
         if (dragType == DragType.LEFT) {
@@ -458,7 +458,7 @@ public class AgentGraph : MonoBehaviour
                 for (int j = i+1; j < selectorPrimary.selected.Count; j++) {
                     Agent a1 = selectorPrimary.selected[i].GetComponent<Agent>();
                     Agent a2 = selectorPrimary.selected[j].GetComponent<Agent>();
-                    AddEdge(a1, a2);
+                    bool success = AddEdge(a1, a2);
                 }
             }
         }

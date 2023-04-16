@@ -6,6 +6,7 @@ using UnityEngine.Events;
 public class ExampleModel : NetworkRules
 {
     void Awake() {
+        base.Awake();
         direction = ValueFlow.VALUE_TO_ALLOC;
     }
 

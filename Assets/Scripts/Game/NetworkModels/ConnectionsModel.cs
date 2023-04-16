@@ -10,6 +10,7 @@ public class ConnectionsModel : NetworkRules
     public float delta;
 
     void Awake() {
+        base.Awake();
         direction = ValueFlow.ALLOC_TO_VALUE;
     }
 
