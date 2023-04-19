@@ -11,6 +11,10 @@ public class RandomGame : NetworkFormationGame
     public float proposalChance = 0.5f;
     public float acceptChance = 0.5f;
 
+    void Awake() {
+        gameName = "Random Game";
+    }
+
     // Resets the parameters and history of the game
     // Should also be called when user changes the graph.
     public override void Reset() {

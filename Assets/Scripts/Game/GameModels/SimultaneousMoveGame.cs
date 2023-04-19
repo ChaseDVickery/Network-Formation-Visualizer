@@ -17,6 +17,10 @@ public class SimultaneousMoveGame : NetworkFormationGame
         base.Reset();
     }
 
+    void Awake() {
+        gameName = "Simultaneous Move Game";
+    }
+
     // Represents an atomic "step" of the formation game
     // Ideally the smallest unit of decision that occurs during the game
     // Creates list of NetworkEvents representing changes to the network

@@ -10,6 +10,7 @@ using Interactable;
 
 public class NetworkFormationGame : MonoBehaviour
 {
+    public string gameName;
 
     private AgentGraph backupAgentGraph;
     public AgentGraph agentGraph;
@@ -28,8 +29,9 @@ public class NetworkFormationGame : MonoBehaviour
     public float stepTime = 0.1f;
     private IEnumerator runCoroutine;
     private IEnumerator reverseCoroutine;
-    private bool runningRun = false;
-    private bool runningReverse = false;
+    public bool runningRun {get; private set;}
+    public bool runningReverse {get; private set;}
+    public bool inGame {get; private set;}
 
     public int time = 0;
 
@@ -46,6 +48,9 @@ public class NetworkFormationGame : MonoBehaviour
     private List<Type> subclasses;
 
     void Start() {
+        runningRun = false;
+        runningReverse = false;
+        inGame = false;
         subclasses = new List<Type>();
         // https://stackoverflow.com/questions/8928464/for-an-object-can-i-get-all-its-subclasses-using-reflection-or-other-ways
         foreach (Type type in typeof(NetworkFormationGame).Assembly.GetTypes().Where(type => type.IsSubclassOf(typeof(NetworkFormationGame)))) {
@@ -102,6 +107,8 @@ public class NetworkFormationGame : MonoBehaviour
     // Resets the parameters and history of the game
     // Should also be called when user changes the graph.
     public virtual void Reset() {
+        inGame = true;
+
         highlights.Clear();
 
         agentGraph.ClearPEdges();
@@ -205,6 +212,7 @@ public class NetworkFormationGame : MonoBehaviour
         agentGraph.inputEnabled = true;
         agentGraph.DeselectAll();
         agentGraph.RefreshView();
+        inGame = false;
     }
 
     // Ends the game and resets the AgentGraph to its state before the the game
@@ -221,6 +229,7 @@ public class NetworkFormationGame : MonoBehaviour
         agentGraph.inputEnabled = true;
         agentGraph.DeselectAll();
         agentGraph.RefreshView();
+        inGame = false;
     }
 
     public void Step() {

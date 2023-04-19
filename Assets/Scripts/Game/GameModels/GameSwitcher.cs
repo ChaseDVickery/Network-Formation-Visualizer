@@ -22,6 +22,10 @@ public class GameSwitcher : MonoBehaviour
     }
 
     public void ChangeModel(int idx) {
+        if (currentGame != null) {
+            Stop();
+        }
+
         currentGame = gameChoices[idx];
         currentModifier = modifierInterfaces[idx];
         // Change Current Game
@@ -29,6 +33,19 @@ public class GameSwitcher : MonoBehaviour
         currentGame.LinkInterface(currentModifier);
 
         // StopRestoreGraph();
+    }
+
+    void Update() {
+        if (currentGame != null && currentGame.inGame) { 
+            if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+                currentGame.Pause();
+                currentGame.Undo();
+            }
+            if (Input.GetKeyDown(KeyCode.RightArrow)) {
+                currentGame.Pause();
+                currentGame.Step();
+            }
+        }
     }
 
     public void ShowCurrentModifierInterface() {

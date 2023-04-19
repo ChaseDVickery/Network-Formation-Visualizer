@@ -6,8 +6,10 @@ using System.Reflection;
 
 using TMPro;
 
-public class JacksonWattsDynamicGame : NetworkFormationGame
+public class StochasticDynamicGame : NetworkFormationGame
 {
+    [Range(0f,1f)]
+    public float epsilon = 0.05f;
     // public float proposalChance = 0.5f;
     // public float acceptChance = 0.5f;
 
@@ -18,7 +20,7 @@ public class JacksonWattsDynamicGame : NetworkFormationGame
     }
 
     void Awake() {
-        gameName = "Dynamic Game";
+        gameName = "Stochastic Dynamic Game";
     }
 
     // Represents an atomic "step" of the formation game
@@ -40,7 +42,8 @@ public class JacksonWattsDynamicGame : NetworkFormationGame
             List<int> idcs = Enumerable.Range(0,agentGraph.agents.Count).ToArray().ToList();
             idcs.Shuffle();
             ne = PlanDoNothing();
-            ne.numRandomsInt = agentGraph.agents.Count-1;
+            float epsilon_roll = RandomQueue.GetValue();
+            ne.numRandomsInt = agentGraph.agents.Count; // includes +1 from epsilon roll
             Plan(ne);
             Agent a1 = agentGraph.agents[idcs[0]];
             Agent a2 = agentGraph.agents[idcs[1]];
@@ -53,21 +56,46 @@ public class JacksonWattsDynamicGame : NetworkFormationGame
             if (agentGraph.graph.AreConnected(a1, a2, agentGraph.undirected)) {
                 // Propose Edge Destruction if a1 would be better off without it
                 // should I also check for a2?
-                if (a1new > a1alloc) {
-                    ne = PlanDisconnect(a1, a2);
-                    Plan(ne);
+                // Perform opposite of normal with chance epsilon
+                if (epsilon_roll < epsilon) {
+                    // Flipped version of normal choice
+                    if (a1new > a1alloc) {
+                        currHighlights.Add(agentGraph.EdgeAt(a1, a2));
+                    } else {
+                        ne = PlanDisconnect(a1, a2);
+                        Plan(ne);
+                    }
+                // Perform normal action if epsilon roll not met
                 } else {
-                    currHighlights.Add(agentGraph.EdgeAt(a1, a2));
+                    if (a1new > a1alloc) {
+                        ne = PlanDisconnect(a1, a2);
+                        Plan(ne);
+                    } else {
+                        currHighlights.Add(agentGraph.EdgeAt(a1, a2));
+                    }
                 }
+                
             } else {
-                // Propose Edge Insertion
-                if ((a1new > a1alloc && a2new >= a2alloc) || (a1new >= a1alloc && a2new > a2alloc)) {
-                    ne = PlanProposeEdge(a1, a2);
-                    ne.proposal.preAccept = true;
-                    Plan(ne);
+                if (epsilon_roll < epsilon) {
+                    // Propose Edge Insertion
+                    if ((a1new > a1alloc && a2new >= a2alloc) || (a1new >= a1alloc && a2new > a2alloc)) {
+                        ne = PlanProposeEdge(a1, a2);
+                        Plan(ne);
+                    } else {
+                        ne = PlanProposeEdge(a1, a2);
+                        ne.proposal.preAccept = true;
+                        Plan(ne);
+                    }
                 } else {
-                    ne = PlanProposeEdge(a1, a2);
-                    Plan(ne);
+                    // Propose Edge Insertion
+                    if ((a1new > a1alloc && a2new >= a2alloc) || (a1new >= a1alloc && a2new > a2alloc)) {
+                        ne = PlanProposeEdge(a1, a2);
+                        ne.proposal.preAccept = true;
+                        Plan(ne);
+                    } else {
+                        ne = PlanProposeEdge(a1, a2);
+                        Plan(ne);
+                    }
                 }
             }
         } else {
