@@ -660,6 +660,10 @@ public class AgentGraph : MonoBehaviour
             // Only pairwise stable if u_i(g) >= u_i(g - ij) for all i and ij
             // Otherwise, not PS
             if (currAllocs[negadj.i] < newAllocs[negadj.i]) { return false; }
+            // Check other way around if undirected graph
+            if (undirected) {
+                if (currAllocs[negadj.j] < newAllocs[negadj.j]) { return false; }
+            }
         }
 
         // Check that. when adding an edge, if my utility (u_i) goes up, then my partner's
@@ -671,6 +675,14 @@ public class AgentGraph : MonoBehaviour
                 if (newAllocs[posadj.j] >= currAllocs[posadj.j]) {
                     return false;
                 }
+            }
+            // Check other way around if undirected graph
+            if (undirected) {
+                if (newAllocs[posadj.j] > currAllocs[posadj.j]) {
+                    if (newAllocs[posadj.i] >= currAllocs[posadj.i]) {
+                        return false;
+                    }
+                }   
             }
         }
 

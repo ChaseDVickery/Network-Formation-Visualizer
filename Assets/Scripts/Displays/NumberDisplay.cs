@@ -15,7 +15,7 @@ public class NumberDisplay : MonoBehaviour
 
     public void UpdateNumber(float number) {
         string s = "";
-        s += number.ToString("n2");
+        s += number.ToString("n3");
         numberText.text = s;
     }
 }
