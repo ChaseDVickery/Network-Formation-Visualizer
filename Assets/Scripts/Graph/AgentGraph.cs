@@ -190,11 +190,6 @@ public class AgentGraph : MonoBehaviour
             SelectAllEdges();
         }
 
-        if (Input.GetKeyDown("g")) {
-            // GetAllAdjacentGraphs();
-            IsPairwiseStable();
-        }
-
         if (Input.GetKeyDown("r")) {
             // RemoveSelectedAgents();
             RemoveSelected();
