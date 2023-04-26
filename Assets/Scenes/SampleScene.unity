@@ -5818,7 +5818,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -20, y: -20}
+  m_SizeDelta: {x: -80, y: -40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &546018707
 MonoBehaviour:
@@ -5840,24 +5840,25 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Games:\n\tRandom Game - Agents have a chance to propose an edge to any
+  m_text: "Games:\n - Random Game - Agents have a chance to propose an edge to any
     other agent and a chance to accept incoming edge proposals. You may modify the
     proposal and acceptance chances of agents. If \"Simultaneous\" is true, then
-    all agents make proposals/accept proposals during the same time step.\n\tSimultaneous
+    all agents make proposals/accept proposals during the same time step.\n - Simultaneous
     Game - On even timesteps, all agents propose an edge to all other agents for
     which that single connection would increase the proposer's payoff. On odd timesteps,
     edges are created between two agents if both agents proposed to one another in
-    the previous step.\n\tDynamic Game - Every timestep, an existing or potential
+    the previous step.\n - Dynamic Game - Every timestep, an existing or potential
     edge is randomly identified. When a existing edge is assessed, and if the source
     agent would achieve higher payoff without the edge, then it is disconnected.
     When a potential edge is assessed, if at least one agent in the connection would
-    get higher payoff without reducing the payoff of the other, then an edge is formed.\n\tStochastic
-    Dynamic Game - Like Dynamic Game, but there is a chance, epsilon < 0, that the
-    outcome of the action is the opposite of what was decided on.\n\nNetworks:\n\tConnections
-    Model - Maintaining an edge incurs costs. Agents gain decreasing payoffs based
-    on length of shortest path to other agents.\n\tExample Model - Flat network value
-    of 100. Each edge decreases the overall value. Agents get payoff proportional
-    to the number of edges they have and the total value of the network."
+    get higher payoff without reducing the payoff of the other, then an edge is formed.\n
+    - Stochastic Dynamic Game - Like Dynamic Game, but there is a chance, epsilon
+    < 0, that the outcome of the action is the opposite of what was decided on.\n\nNetworks:\n
+    - Connections Model - Maintaining an edge incurs costs. Agents gain decreasing
+    payoffs based on length of shortest path to other agents.\n - Example Model -
+    Flat network value of 100. Each edge decreases the overall value. Agents get
+    payoff proportional to the number of edges they have and the total value of the
+    network."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5884,7 +5885,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 34.4
+  m_fontSize: 34.3
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -16410,7 +16411,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -20, y: -20}
+  m_SizeDelta: {x: -80, y: -40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1567578335
 MonoBehaviour:
@@ -16434,40 +16435,38 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Keyboard Controls:
 
-    "Space" - Connects agents (all or bipartite) depending
-    on primary/secondary selection. Add new agent (if no selection).
+    - "Space" - Connects agents (all or bipartite)
+    depending on primary/secondary selection. Add new agent (if no selection).
 
-    "a" - Connect
-    all agents in primary selection.
+    -
+    "a" - Connect all agents in primary selection.
 
-    "s" - Connect agents between primary and
-    secondary selection in bipartite form.
+    - "s" - Connect agents between
+    primary and secondary selection in bipartite form.
 
-    "r" - Remove selected components.
+    - "r" - Remove selected
+    components.
 
-    "1"
-    - Select all agents.
+    - "1" - Select all agents.
 
-    "2" - Select all edges.
+    - "2" - Select all edges.
 
-    "Ctrl" (Hold) - Keep current
-    selection. New selections add or remove from selections.
+    -
+    "Ctrl" (Hold) - Keep current selection. New selections add or remove from selections.
 
 
-    Mouse Controls:
+    Mouse
+    Controls:
 
-    Left
-    Click/Hold - Primary selection/Area selection.
+    - Left Click/Hold - Primary selection/Area selection.
 
-    Right Click/Hold - Secondary
-    selection/Area selection.
+    - Right
+    Click/Hold - Secondary selection/Area selection.
 
-    Middle Click/Drag - Move camera.
+    - Middle Click/Drag - Move
+    camera.
 
-    Middle Scroll
-    - Zoom in/out.
-
-'
+    - Middle Scroll - Zoom in/out.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
