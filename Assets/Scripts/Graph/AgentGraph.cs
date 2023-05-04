@@ -303,10 +303,10 @@ public class AgentGraph : MonoBehaviour
         // Calculate the Value of the graph as well as the per-agent allocations
         if (rules.direction == ValueFlow.VALUE_TO_ALLOC) {
             v = rules.GetNetworkValue(toCalculate, null);
-            a = rules.GetAllocation(toCalculate, value);
+            a = rules.GetAllocation(toCalculate, v);
         } else if (rules.direction == ValueFlow.ALLOC_TO_VALUE) {
             a = rules.GetAllocation(toCalculate, 0);
-            v = rules.GetNetworkValue(toCalculate, allocations);
+            v = rules.GetNetworkValue(toCalculate, a);
         }
 
         if (!temp) {
@@ -648,10 +648,12 @@ public class AgentGraph : MonoBehaviour
         bool stable = true;
         List<AdjGraph<Agent>> posAdjGraphs = GetPositiveAdjacentGraphs();
         List<AdjGraph<Agent>> negAdjGraphs = GetNegativeAdjacentGraphs();
-        List<float> currAllocs = CalculateAllocation();
+
+        List<float> currAllocs = CalculateAllocation(graph);
         // Check that removing an edge does not decrease any agent's allocation
         foreach (AdjGraph<Agent> negadj in negAdjGraphs) {
             List<float> newAllocs = CalculateAllocation(negadj);
+            
             // Only pairwise stable if u_i(g) >= u_i(g - ij) for all i and ij
             // Otherwise, not PS
             if (currAllocs[negadj.i] < newAllocs[negadj.i]) { return false; }
