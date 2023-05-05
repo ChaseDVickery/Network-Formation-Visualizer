@@ -160,6 +160,7 @@ public class AgentGraph : MonoBehaviour
                 }
             }
         }
+        ApplyNetworkRules();
     }
 
     // public void SetGraph(Graph<Agent> newGraph) {
