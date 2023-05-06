@@ -20,3 +20,9 @@ Temp/
 
 Build/Windows/*
 !Build/Windows/latest/
+
+Build/macOS/*
+!Build/macOS/latest/
+
+Build/Linux/*
+!Build/Linux/latest/
