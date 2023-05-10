@@ -58,5 +58,6 @@ Note: Executable testing was performed only on a Windows 10 machine. Source test
 <a name="examples"/></a>
 ### Examples
 ![](https://github.com/ChaseDVickery/Network-Formation-Visualizer/blob/main/videos/dynamic_move_agent.gif)
+![](https://github.com/ChaseDVickery/Network-Formation-Visualizer/blob/main/videos/init_conds.gif)
 ![](https://github.com/ChaseDVickery/Network-Formation-Visualizer/blob/main/videos/dynamic_weight_change.gif)
 ![](https://github.com/ChaseDVickery/Network-Formation-Visualizer/blob/main/videos/dynamic_delta_change.gif)
